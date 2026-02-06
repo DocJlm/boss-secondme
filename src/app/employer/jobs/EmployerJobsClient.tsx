@@ -110,6 +110,14 @@ export function EmployerJobsClient({ initialJobs, employerProfile }: EmployerJob
           }}
         />
       )}
+      <div className="mb-4 flex items-center justify-end">
+        <button
+          onClick={() => setShowEditDialog(true)}
+          className="px-4 py-2 bg-slate-100 text-slate-700 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors"
+        >
+          编辑公司与招聘人信息
+        </button>
+      </div>
       {jobs.length === 0 && !showForm ? (
         <div className="text-center py-8">
           <p className="text-slate-500 text-sm mb-4">
