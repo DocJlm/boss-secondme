@@ -31,6 +31,7 @@ export interface TokenResponse {
 export interface UserInfo {
   userId?: string;
   id?: string;
+  openId?: string;
   name?: string;
   email?: string;
   avatar?: string;

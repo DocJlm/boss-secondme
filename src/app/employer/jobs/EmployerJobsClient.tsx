@@ -43,9 +43,11 @@ export function EmployerJobsClient({ initialJobs }: EmployerJobsClientProps) {
     setShowForm(false);
   }, []);
 
-  const handleEditSuccess = useCallback((updatedJob: Job) => {
+  const handleEditSuccess = useCallback((updatedJob: Omit<Job, "createdAt">) => {
     setJobs((prev) =>
-      prev.map((job) => (job.id === updatedJob.id ? updatedJob : job))
+      prev.map((job) =>
+        job.id === updatedJob.id ? { ...job, ...updatedJob } : job
+      )
     );
     setEditingJobId(null);
   }, []);
@@ -91,10 +93,10 @@ export function EmployerJobsClient({ initialJobs }: EmployerJobsClientProps) {
                         title: job.title,
                         description: job.description || "",
                         city: job.city,
-                        salaryMin: job.salaryMin,
-                        salaryMax: job.salaryMax,
-                        salaryCurrency: job.salaryCurrency,
-                        tags: job.tags,
+                        salaryMin: job.salaryMin ?? null,
+                        salaryMax: job.salaryMax ?? null,
+                        salaryCurrency: job.salaryCurrency ?? null,
+                        tags: job.tags ?? null,
                         status: job.status,
                       }}
                       onSuccess={handleEditSuccess}

@@ -68,7 +68,7 @@ export function MatchesListClient({ matches }: MatchesListClientProps) {
                 {profile?.yearsExp !== null && (
                   <div>
                     <span className="font-medium">工作年限：</span>
-                    {profile.yearsExp} 年
+                    {profile?.yearsExp} 年
                   </div>
                 )}
               </div>
