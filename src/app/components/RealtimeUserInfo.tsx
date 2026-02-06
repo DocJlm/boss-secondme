@@ -30,37 +30,51 @@ export function RealtimeUserInfo({
     const fetchUserInfo = async () => {
       try {
         // 通过 targetUserId 获取用户信息
-        // 注意：这里需要创建一个新的API端点来根据userId获取用户信息
-        // 或者使用现有的API，但需要传递targetUserId参数
         const response = await fetch(`/api/user/${targetUserId}/info`);
         const result = await response.json();
         
         if (result.code === 0 && result.data) {
           const newInfo: UserInfo = {
-            avatar: result.data.avatar || null,
-            name: result.data.name || null,
+            // 如果API返回了新的头像，使用新头像；否则保持现有头像或初始头像
+            avatar: result.data.avatar || userInfo.avatar || initialAvatar || null,
+            name: result.data.name || userInfo.name || initialName || null,
           };
           setUserInfo(newInfo);
           if (onUpdate) {
             onUpdate(newInfo);
           }
+        } else {
+          // API调用成功但数据为空，保持现有值
+          if (onUpdate && (userInfo.avatar || initialAvatar || userInfo.name || initialName)) {
+            onUpdate({
+              avatar: userInfo.avatar || initialAvatar || null,
+              name: userInfo.name || initialName || null,
+            });
+          }
         }
       } catch (error) {
         console.error("获取用户信息失败:", error);
-        // 如果API调用失败，使用初始值
-        if (onUpdate && (initialAvatar || initialName)) {
-          onUpdate({
-            avatar: initialAvatar || null,
-            name: initialName || null,
-          });
+        // 如果API调用失败，保持现有值或使用初始值，不设置为null
+        if (onUpdate) {
+          const currentInfo: UserInfo = {
+            avatar: userInfo.avatar || initialAvatar || null,
+            name: userInfo.name || initialName || null,
+          };
+          // 只有在有值的情况下才更新
+          if (currentInfo.avatar || currentInfo.name) {
+            onUpdate(currentInfo);
+          }
         }
       }
     };
 
     if (targetUserId) {
       fetchUserInfo();
+      // 设置定时刷新（每30秒刷新一次）
+      const interval = setInterval(fetchUserInfo, 30000);
+      return () => clearInterval(interval);
     }
-  }, [targetUserId, initialAvatar, initialName, onUpdate]);
+  }, [targetUserId]); // 移除 onUpdate 和 initialAvatar/initialName 依赖，避免无限循环
 
   return null; // 这个组件不渲染任何内容，只负责更新状态
 }

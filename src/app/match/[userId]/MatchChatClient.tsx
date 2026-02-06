@@ -71,6 +71,16 @@ export function MatchChatClient({
   const [realtimeCandidateName, setRealtimeCandidateName] = useState<string | null>(candidateName || null);
   const [realtimeEmployerAvatar, setRealtimeEmployerAvatar] = useState<string | null>(employerAvatar || null);
   const [realtimeEmployerName, setRealtimeEmployerName] = useState<string | null>(employerName || null);
+  
+  // 确保头像不会意外被清空
+  useEffect(() => {
+    if (employerAvatar && !realtimeEmployerAvatar) {
+      setRealtimeEmployerAvatar(employerAvatar);
+    }
+    if (employerName && !realtimeEmployerName) {
+      setRealtimeEmployerName(employerName);
+    }
+  }, [employerAvatar, employerName]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
@@ -310,8 +320,13 @@ export function MatchChatClient({
           initialAvatar={candidateAvatar}
           initialName={candidateName}
           onUpdate={(info) => {
-            setRealtimeCandidateAvatar(info.avatar);
-            setRealtimeCandidateName(info.name);
+            // 只有在有值的情况下才更新，避免将头像设置为null
+            if (info.avatar) {
+              setRealtimeCandidateAvatar(info.avatar);
+            }
+            if (info.name) {
+              setRealtimeCandidateName(info.name);
+            }
           }}
         />
       )}
@@ -322,8 +337,13 @@ export function MatchChatClient({
           initialAvatar={employerAvatar}
           initialName={employerName}
           onUpdate={(info) => {
-            setRealtimeEmployerAvatar(info.avatar);
-            setRealtimeEmployerName(info.name);
+            // 只有在有值的情况下才更新，避免将头像设置为null
+            if (info.avatar) {
+              setRealtimeEmployerAvatar(info.avatar);
+            }
+            if (info.name) {
+              setRealtimeEmployerName(info.name);
+            }
           }}
         />
       )}
