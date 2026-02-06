@@ -73,6 +73,30 @@ export default async function EmployerPlazaPage() {
   }
 
   const jobs = user.employerProfile?.jobs || [];
+  // 检查公司信息是否完整
+  const hasCompanyInfo = user.employerProfile?.company?.name && 
+    user.employerProfile?.company?.name !== "未命名公司" &&
+    user.employerProfile?.name;
+  
+  if (!hasCompanyInfo) {
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-orange-50/30 via-white to-orange-50/30">
+        <div className="text-center max-w-md">
+          <p className="text-slate-600 mb-4">请先完善公司和招聘人信息</p>
+          <p className="text-sm text-slate-500 mb-6">
+            完善信息后，你就可以发布职位并开始匹配候选人了
+          </p>
+          <a
+            href="/employer/jobs"
+            className="inline-block px-6 py-3 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-colors shadow-lg"
+          >
+            去完善信息并发布职位
+          </a>
+        </div>
+      </div>
+    );
+  }
+  
   if (jobs.length === 0) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-orange-50/30 via-white to-orange-50/30">

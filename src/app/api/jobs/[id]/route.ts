@@ -46,6 +46,66 @@ export async function GET(
   }
 }
 
+export async function DELETE(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> | { id: string } }
+) {
+  const sessionCookie = req.cookies.get("session_user_id");
+  if (!sessionCookie?.value) {
+    return NextResponse.json({ code: 401, message: "未登录" }, { status: 401 });
+  }
+
+  const resolvedParams = await Promise.resolve(params);
+  const jobId = resolvedParams.id;
+  const userId = sessionCookie.value;
+
+  try {
+    // 验证职位是否存在
+    const job = await prisma.job.findUnique({
+      where: { id: jobId },
+      include: {
+        employer: true,
+      },
+    });
+
+    if (!job) {
+      return NextResponse.json(
+        { code: 404, message: "职位不存在" },
+        { status: 404 }
+      );
+    }
+
+    // 验证是否是职位所属的招聘方
+    const employer = await prisma.employerProfile.findUnique({
+      where: { userId },
+    });
+
+    if (!employer || employer.id !== job.employerId) {
+      return NextResponse.json(
+        { code: 403, message: "无权删除此职位" },
+        { status: 403 }
+      );
+    }
+
+    // 删除职位
+    await prisma.job.delete({
+      where: { id: jobId },
+    });
+
+    return NextResponse.json({ code: 0, message: "删除成功" });
+  } catch (error: any) {
+    console.error("Delete job error:", error);
+    return NextResponse.json(
+      {
+        code: 500,
+        message: "删除职位失败",
+        error: process.env.NODE_ENV === "development" ? error.message : undefined,
+      },
+      { status: 500 }
+    );
+  }
+}
+
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> | { id: string } }

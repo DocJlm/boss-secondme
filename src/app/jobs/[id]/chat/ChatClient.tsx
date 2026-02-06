@@ -85,65 +85,104 @@ export function ChatClient({ jobId, jobTitle }: ChatClientProps) {
         throw new Error("无法获取流式响应");
       }
 
+      // 创建一条新的 assistant 消息，但先不添加到列表
+      const assistantMessageId = (Date.now() + 1).toString();
       let assistantMessage: Message = {
-        id: (Date.now() + 1).toString(),
+        id: assistantMessageId,
         role: "assistant",
         content: "",
         timestamp: new Date(),
       };
 
+      // 先添加一条空消息
       setMessages((prev) => [...prev, assistantMessage]);
 
       let done = false;
+      let buffer = "";
       while (!done) {
         const { value, done: doneReading } = await reader.read();
         done = doneReading;
 
         if (value) {
-          const chunk = decoder.decode(value, { stream: true });
-          // 处理 SSE 格式的数据
-          const lines = chunk.split("\n");
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split("\n");
+          buffer = lines.pop() || "";
+
           for (const line of lines) {
             if (line.startsWith("data: ")) {
-              const data = line.slice(6);
+              const data = line.slice(6).trim();
               if (data && data !== "[DONE]") {
                 try {
                   const parsed = JSON.parse(data);
-                  if (parsed.content) {
-                    assistantMessage.content += parsed.content;
+                  let chunk = "";
+                  // 处理 OpenAI 兼容格式: choices[0].delta.content
+                  if (parsed.choices?.[0]?.delta?.content) {
+                    chunk = parsed.choices[0].delta.content;
+                  } else if (parsed.content) {
+                    chunk = parsed.content;
+                  } else if (parsed.delta) {
+                    chunk = parsed.delta;
+                  }
+                  
+                  if (chunk) {
+                    assistantMessage.content += chunk;
+                    // 更新最后一条 assistant 消息
                     setMessages((prev) => {
                       const updated = [...prev];
                       const lastMsg = updated[updated.length - 1];
-                      if (lastMsg && lastMsg.role === "assistant") {
+                      if (lastMsg && lastMsg.id === assistantMessageId && lastMsg.role === "assistant") {
                         lastMsg.content = assistantMessage.content;
                       }
                       return updated;
                     });
                   }
                 } catch (e) {
-                  // 如果不是 JSON，直接作为文本内容
-                  assistantMessage.content += data;
-                  setMessages((prev) => {
-                    const updated = [...prev];
-                    const lastMsg = updated[updated.length - 1];
-                    if (lastMsg && lastMsg.role === "assistant") {
-                      lastMsg.content = assistantMessage.content;
-                    }
-                    return updated;
-                  });
+                  // 如果不是 JSON，忽略（可能是跨 chunk 的数据）
                 }
               }
-            } else if (line.trim() && !line.startsWith(":")) {
-              // 直接文本内容
+            } else if (line.trim() && !line.startsWith(":") && !line.startsWith("event:")) {
+              // 直接文本内容（非 SSE 格式）
               assistantMessage.content += line;
               setMessages((prev) => {
                 const updated = [...prev];
                 const lastMsg = updated[updated.length - 1];
-                if (lastMsg && lastMsg.role === "assistant") {
+                if (lastMsg && lastMsg.id === assistantMessageId && lastMsg.role === "assistant") {
                   lastMsg.content = assistantMessage.content;
                 }
                 return updated;
               });
+            }
+          }
+        }
+      }
+      
+      // 处理剩余的 buffer
+      if (buffer.trim()) {
+        const line = buffer.trim();
+        if (line.startsWith("data: ")) {
+          const data = line.slice(6).trim();
+          if (data && data !== "[DONE]") {
+            try {
+              const parsed = JSON.parse(data);
+              let chunk = "";
+              if (parsed.choices?.[0]?.delta?.content) {
+                chunk = parsed.choices[0].delta.content;
+              } else if (parsed.content) {
+                chunk = parsed.content;
+              }
+              if (chunk) {
+                assistantMessage.content += chunk;
+                setMessages((prev) => {
+                  const updated = [...prev];
+                  const lastMsg = updated[updated.length - 1];
+                  if (lastMsg && lastMsg.id === assistantMessageId && lastMsg.role === "assistant") {
+                    lastMsg.content = assistantMessage.content;
+                  }
+                  return updated;
+                });
+              }
+            } catch (e) {
+              // 忽略解析错误
             }
           }
         }

@@ -32,6 +32,10 @@ export function EmployerJobsClient({ initialJobs }: EmployerJobsClientProps) {
   const [showForm, setShowForm] = useState(false);
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
 
+  const handleCancelForm = useCallback(() => {
+    setShowForm(false);
+  }, []);
+
   const handleSuccess = useCallback((newJob: Job) => {
     // 确保新职位的日期格式正确
     const normalizedNewJob = {
@@ -81,7 +85,14 @@ export function EmployerJobsClient({ initialJobs }: EmployerJobsClientProps) {
               )}
             </div>
           )}
-          {showForm && <CreateJobForm onSuccess={handleSuccess} />}
+          {showForm && (
+            <div>
+              <CreateJobForm 
+                onSuccess={handleSuccess}
+                onCancel={handleCancelForm}
+              />
+            </div>
+          )}
           {jobs.length > 0 && (
             <ul className="space-y-4">
               {jobs.map((job) => (
@@ -128,6 +139,30 @@ export function EmployerJobsClient({ initialJobs }: EmployerJobsClientProps) {
                             className="px-3 py-1 text-xs bg-slate-100 text-slate-700 rounded hover:bg-slate-200 transition-colors"
                           >
                             编辑
+                          </button>
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`确定要删除职位「${job.title}」吗？此操作不可恢复。`)) {
+                                return;
+                              }
+                              try {
+                                const response = await fetch(`/api/jobs/${job.id}`, {
+                                  method: "DELETE",
+                                });
+                                const result = await response.json();
+                                if (result.code === 0) {
+                                  setJobs((prev) => prev.filter((j) => j.id !== job.id));
+                                } else {
+                                  alert(result.message || "删除失败");
+                                }
+                              } catch (error) {
+                                console.error("删除职位失败:", error);
+                                alert("删除失败，请稍后重试");
+                              }
+                            }}
+                            className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition-colors"
+                          >
+                            删除
                           </button>
                         </div>
                       </div>

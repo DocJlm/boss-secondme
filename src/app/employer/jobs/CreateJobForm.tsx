@@ -10,7 +10,13 @@ interface Job {
   createdAt: Date;
 }
 
-export function CreateJobForm({ onSuccess }: { onSuccess: (newJob: Job) => void }) {
+export function CreateJobForm({ 
+  onSuccess, 
+  onCancel 
+}: { 
+  onSuccess: (newJob: Job) => void;
+  onCancel?: () => void;
+}) {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -165,13 +171,24 @@ export function CreateJobForm({ onSuccess }: { onSuccess: (newJob: Job) => void 
           />
         </div>
       </div>
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed"
-      >
-        {loading ? "发布中..." : "发布职位"}
-      </button>
+      <div className="flex gap-2">
+        {onCancel && (
+          <button
+            type="button"
+            onClick={onCancel}
+            className="flex-1 px-4 py-2 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300 transition-colors"
+          >
+            取消
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={loading}
+          className={`px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:bg-slate-400 disabled:cursor-not-allowed ${onCancel ? 'flex-1' : 'w-full'}`}
+        >
+          {loading ? "发布中..." : "发布职位"}
+        </button>
+      </div>
     </form>
   );
 }
