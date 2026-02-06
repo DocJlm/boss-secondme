@@ -57,7 +57,15 @@ export function PlazaClient({
   candidateUserId,
 }: PlazaClientProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(() => {
+    const hasBasicInfo =
+      candidateProfile?.title ||
+      candidateProfile?.city ||
+      candidateProfile?.skills ||
+      candidateProfile?.bio;
+    // 如果还没有填写任何基础信息，首次进入时自动弹出编辑资料
+    return !hasBasicInfo;
+  });
   
   // 筛选状态
   const [searchQuery, setSearchQuery] = useState("");
@@ -150,40 +158,13 @@ export function PlazaClient({
     setCurrentIndex(0);
   }
 
-  if (filteredAndSortedEmployers.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-slate-600 mb-4">
-            {employers.length === 0 ? "暂无招聘方在线" : "没有找到匹配的招聘方"}
-          </p>
-          {(searchQuery || selectedCity || selectedJobType) && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedCity("");
-                setSelectedJobType("");
-              }}
-              className="text-orange-600 hover:text-orange-700 font-medium mb-4 block mx-auto"
-            >
-              清除筛选条件
-            </button>
-          )}
-          <Link
-            href="/"
-            className="text-orange-600 hover:text-orange-700 font-medium"
-          >
-            返回首页
-          </Link>
-        </div>
-      </div>
-    );
-  }
+  const isEmpty = filteredAndSortedEmployers.length === 0;
 
   const currentEmployer = filteredAndSortedEmployers[currentIndex];
-  const currentMatchScore = employersWithScores.find(
-    (item) => item.employer.id === currentEmployer.id
-  )?.matchScore;
+  const currentMatchScore = currentEmployer
+    ? employersWithScores.find((item) => item.employer.id === currentEmployer.id)
+        ?.matchScore
+    : undefined;
 
   const handleNext = () => {
     if (currentIndex < employers.length - 1) {
@@ -368,29 +349,53 @@ export function PlazaClient({
         </div>
       )}
 
-      {/* 卡片区域 */}
+      {/* 内容区域 / 卡片区域 */}
       <div className="flex-1 flex items-center justify-center px-6 py-8 bg-gradient-to-b from-orange-50/30 via-white to-orange-50/30">
-        <div className="relative w-full max-w-md">
-          <EmployerCard
-            employer={currentEmployer}
-            candidateProfile={candidateProfile}
-            candidateUserId={candidateUserId}
-            matchScore={currentMatchScore}
-            onNext={handleNext}
-            onPrev={handlePrev}
-            canNext={currentIndex < filteredAndSortedEmployers.length - 1}
-            canPrev={currentIndex > 0}
-          />
-        </div>
+        {isEmpty ? (
+          <div className="text-center max-w-md">
+            <p className="text-slate-600 mb-4">
+              {employers.length === 0
+                ? "当前还没有招聘方发布职位，你可以先完善个人资料，稍后再来看看。"
+                : "没有找到匹配的招聘方，可以调整筛选条件或完善个人资料。"}
+            </p>
+            {(searchQuery || selectedCity || selectedJobType) && (
+              <button
+                onClick={clearFilters}
+                className="text-sm text-orange-600 hover:text-orange-700 font-medium mb-4"
+              >
+                清除所有筛选
+              </button>
+            )}
+            <button
+              onClick={() => setShowEditDialog(true)}
+              className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+            >
+              填写 / 编辑个人基本信息
+            </button>
+          </div>
+        ) : (
+          <div className="relative w-full max-w-md">
+            <EmployerCard
+              employer={currentEmployer}
+              candidateProfile={candidateProfile}
+              candidateUserId={candidateUserId}
+              matchScore={currentMatchScore}
+              onNext={handleNext}
+              onPrev={handlePrev}
+              canNext={currentIndex < filteredAndSortedEmployers.length - 1}
+              canPrev={currentIndex > 0}
+            />
+          </div>
+        )}
       </div>
-      
+
       {showEditDialog && (
         <EditProfileDialog
           role="candidate"
           initialData={candidateProfile}
           onClose={() => setShowEditDialog(false)}
           onSuccess={() => {
-            // 刷新页面以显示更新后的数据
+            // 编辑成功后刷新页面以获取最新资料和匹配结果
             window.location.reload();
           }}
         />

@@ -75,12 +75,12 @@ export function CandidateProfileForm({
   return (
     <form onSubmit={handleSubmit} className="space-y-4 border-t border-slate-200 pt-4 mt-4">
       <h3 className="text-base font-semibold text-slate-900 mb-3">
-        {mode === "edit" ? "编辑候选人资料" : "创建候选人身份"}
+        {mode === "edit" ? "编辑候选人资料" : "创建候选人资料"}
       </h3>
       <div className="space-y-3">
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1">
-            姓名
+            姓名（必填，简历抬头）
           </label>
           <input
             type="text"
@@ -92,7 +92,7 @@ export function CandidateProfileForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1">
-            当前职位/头衔
+            当前/期望职位
           </label>
           <input
             type="text"
@@ -105,7 +105,7 @@ export function CandidateProfileForm({
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              所在城市
+              所在城市 / 期望工作城市
             </label>
             <input
               type="text"
@@ -117,7 +117,7 @@ export function CandidateProfileForm({
           </div>
           <div>
             <label className="block text-xs font-medium text-slate-700 mb-1">
-              工作年限
+              工作年限（整数，单位：年）
             </label>
             <input
               type="number"
@@ -131,7 +131,7 @@ export function CandidateProfileForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1">
-            技能（逗号分隔）
+            技能 / 技术能力（逗号分隔）
           </label>
           <input
             type="text"
@@ -143,14 +143,14 @@ export function CandidateProfileForm({
         </div>
         <div>
           <label className="block text-xs font-medium text-slate-700 mb-1">
-            个人简介
+            个人简介（可写学校、项目、工作/实习经历等）
           </label>
           <textarea
             value={formData.bio}
             onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
             rows={3}
             className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-            placeholder="简单介绍一下自己..."
+            placeholder="例如：\n- 学校：XX 大学 计算机科学与技术\n- 技术能力：React, TypeScript, Node.js\n- 工作/实习经历：在 XX 公司担任前端实习生，负责..."
           />
         </div>
       </div>

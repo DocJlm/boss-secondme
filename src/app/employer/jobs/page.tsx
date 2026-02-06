@@ -87,12 +87,20 @@ export default async function EmployerJobsPage() {
               公司：{employer.company?.name ?? "未填写公司"} · 招聘人：{employer.name ?? "未填写姓名"}
             </p>
           </div>
-          <Link
-            href="/"
-            className="text-xs text-slate-500 hover:text-slate-700"
-          >
-            返回首页
-          </Link>
+          <div className="flex items-center gap-3 text-xs">
+            <Link
+              href="/plaza/employer"
+              className="text-blue-600 hover:text-blue-700"
+            >
+              编辑公司与招聘人信息
+            </Link>
+            <Link
+              href="/"
+              className="text-slate-500 hover:text-slate-700"
+            >
+              返回首页
+            </Link>
+          </div>
         </div>
 
         <EmployerJobsClient initialJobs={employer.jobs} />
