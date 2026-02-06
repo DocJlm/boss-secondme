@@ -89,12 +89,6 @@ export default async function EmployerJobsPage() {
           </div>
           <div className="flex items-center gap-3 text-xs">
             <Link
-              href="/plaza/employer"
-              className="text-blue-600 hover:text-blue-700"
-            >
-              编辑公司与招聘人信息
-            </Link>
-            <Link
               href="/"
               className="text-slate-500 hover:text-slate-700"
             >
@@ -103,7 +97,25 @@ export default async function EmployerJobsPage() {
           </div>
         </div>
 
-        <EmployerJobsClient initialJobs={employer.jobs} />
+        <EmployerJobsClient 
+          initialJobs={employer.jobs}
+          employerProfile={{
+            name: employer.name,
+            title: employer.title,
+            company: employer.company,
+            jobs: employer.jobs.map(job => ({
+              id: job.id,
+              title: job.title,
+              description: job.description,
+              city: job.city,
+              salaryMin: job.salaryMin,
+              salaryMax: job.salaryMax,
+              salaryCurrency: job.salaryCurrency,
+              tags: job.tags,
+              status: job.status,
+            })),
+          }}
+        />
       </div>
     </main>
   );

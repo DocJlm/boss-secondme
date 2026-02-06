@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import { CreateJobForm } from "./CreateJobForm";
 import { EditJobForm } from "./EditJobForm";
+import { EditProfileDialog } from "../../plaza/EditProfileDialog";
 
 interface Job {
   id: string;
@@ -19,9 +20,30 @@ interface Job {
 
 interface EmployerJobsClientProps {
   initialJobs: Job[];
+  employerProfile?: {
+    name: string | null;
+    title: string | null;
+    company?: {
+      name: string | null;
+      city: string | null;
+      website: string | null;
+      intro: string | null;
+    } | null;
+    jobs: Array<{
+      id: string;
+      title: string;
+      description?: string | null;
+      city?: string | null;
+      salaryMin?: number | null;
+      salaryMax?: number | null;
+      salaryCurrency?: string | null;
+      tags?: string | null;
+      status?: string;
+    }>;
+  };
 }
 
-export function EmployerJobsClient({ initialJobs }: EmployerJobsClientProps) {
+export function EmployerJobsClient({ initialJobs, employerProfile }: EmployerJobsClientProps) {
   // 确保 initialJobs 中的日期格式统一
   const normalizedInitialJobs = initialJobs.map((job) => ({
     ...job,
@@ -31,6 +53,7 @@ export function EmployerJobsClient({ initialJobs }: EmployerJobsClientProps) {
   const [jobs, setJobs] = useState<Job[]>(normalizedInitialJobs);
   const [showForm, setShowForm] = useState(false);
   const [editingJobId, setEditingJobId] = useState<string | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const handleCancelForm = useCallback(() => {
     setShowForm(false);
@@ -58,6 +81,35 @@ export function EmployerJobsClient({ initialJobs }: EmployerJobsClientProps) {
 
   return (
     <>
+      {showEditDialog && employerProfile && (
+        <EditProfileDialog
+          role="employer"
+          initialData={{
+            name: employerProfile.name,
+            title: employerProfile.title,
+            companyName: employerProfile.company?.name,
+            companyCity: employerProfile.company?.city || undefined,
+            companyWebsite: employerProfile.company?.website || undefined,
+            companyIntro: employerProfile.company?.intro || undefined,
+            jobs: employerProfile.jobs.map(job => ({
+              id: job.id,
+              title: job.title,
+              description: job.description,
+              city: job.city,
+              salaryMin: job.salaryMin,
+              salaryMax: job.salaryMax,
+              salaryCurrency: job.salaryCurrency,
+              tags: job.tags || null,
+              status: job.status || "open",
+            })),
+          }}
+          onClose={() => setShowEditDialog(false)}
+          onSuccess={() => {
+            // 刷新页面以显示更新后的数据
+            window.location.reload();
+          }}
+        />
+      )}
       {jobs.length === 0 && !showForm ? (
         <div className="text-center py-8">
           <p className="text-slate-500 text-sm mb-4">
