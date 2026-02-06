@@ -1,0 +1,305 @@
+{
+  "info": {
+    "name": "SecondMe Boss 直聘 Demo",
+    "description": "AI 版 Boss 直聘应用的完整 API 测试集合\n\n## 使用说明\n\n1. **导入后先设置 Cookie**：\n   - 在浏览器登录后，从开发者工具复制 `session_user_id` Cookie 值\n   - 在 Postman 的每个请求的 Headers 中添加：`Cookie: session_user_id=你的值`\n   - 或者在整个 Collection 的 Variables 中设置 `sessionCookie`，然后在 Headers 中使用 `{{sessionCookie}}`\n\n2. **环境变量**：\n   - `baseUrl`: 默认 `http://localhost:3000`，可根据实际情况修改\n\n3. **测试顺序**：\n   - 先测试 `/api/auth/me` 确认登录态\n   - 然后 `/api/profile/init` 初始化角色（employer 或 candidate）\n   - 如果是 employer，可以 `POST /api/jobs` 创建职位\n   - 如果是 candidate，可以 `GET /api/jobs` 查看职位，然后 `POST /api/match` 点赞/略过",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3000",
+      "type": "string"
+    },
+    {
+      "key": "sessionCookie",
+      "value": "",
+      "type": "string",
+      "description": "从浏览器开发者工具复制的 session_user_id Cookie 值，格式：session_user_id=clxxx..."
+    }
+  ],
+  "item": [
+    {
+      "name": "认证相关",
+      "item": [
+        {
+          "name": "检查登录状态",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "type": "text",
+                "description": "需要手动设置：session_user_id=你的值"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/me",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "me"]
+            },
+            "description": "验证当前登录状态，返回用户基本信息"
+          },
+          "response": []
+        },
+        {
+          "name": "退出登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "清除登录 Cookie，退出登录"
+          },
+          "response": []
+        }
+      ],
+      "description": "用户认证相关的 API"
+    },
+    {
+      "name": "角色初始化",
+      "item": [
+        {
+          "name": "初始化为招聘方 (Employer)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"employer\",\n  \"name\": \"HR 小李\",\n  \"title\": \"招聘负责人\",\n  \"companyName\": \"AI Boss 科技\",\n  \"companyCity\": \"杭州\",\n  \"companyWebsite\": \"https://example.com\",\n  \"companyIntro\": \"一家专注 AI 招聘的公司，致力于用 AI 技术提升招聘效率。\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/init",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "init"]
+            },
+            "description": "将当前用户初始化为招聘方角色，同时创建公司信息"
+          },
+          "response": []
+        },
+        {
+          "name": "初始化为候选人 (Candidate)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"candidate\",\n  \"name\": \"张三\",\n  \"title\": \"前端工程师\",\n  \"city\": \"杭州\",\n  \"skills\": \"React,TypeScript,Next.js,Vue\",\n  \"bio\": \"有 3 年前端开发经验，对 AI 技术充满兴趣，希望加入 AI 相关团队。\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/profile/init",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "profile", "init"]
+            },
+            "description": "将当前用户初始化为候选人角色"
+          },
+          "response": []
+        }
+      ],
+      "description": "用户首次使用时需要选择角色（候选人或招聘方）"
+    },
+    {
+      "name": "职位管理",
+      "item": [
+        {
+          "name": "创建职位 (招聘方)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"AI 产品经理\",\n  \"description\": \"负责 AI 招聘平台的产品规划与落地，协同技术与业务团队，推动产品迭代。要求有 3 年以上产品经验，熟悉 AI 领域优先。\",\n  \"city\": \"杭州\",\n  \"salaryMin\": 30000,\n  \"salaryMax\": 50000,\n  \"salaryCurrency\": \"CNY\",\n  \"tags\": \"AI,产品,招聘平台,全职\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"]
+            },
+            "description": "招聘方创建新职位。需要先完成招聘方角色初始化。"
+          },
+          "response": []
+        },
+        {
+          "name": "创建职位 - 示例2 (前端工程师)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"高级前端工程师\",\n  \"description\": \"负责 AI 招聘平台的前端开发，使用 React + Next.js 技术栈。要求熟练掌握 TypeScript、React Hooks、状态管理等。\",\n  \"city\": \"杭州\",\n  \"salaryMin\": 25000,\n  \"salaryMax\": 40000,\n  \"salaryCurrency\": \"CNY\",\n  \"tags\": \"前端,React,Next.js,TypeScript,全职\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"]
+            },
+            "description": "另一个职位创建示例"
+          },
+          "response": []
+        },
+        {
+          "name": "获取所有开放职位",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/jobs",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "jobs"]
+            },
+            "description": "获取所有状态为 open 的职位列表，包含公司信息和发布者信息。候选人可用此接口浏览职位。"
+          },
+          "response": []
+        }
+      ],
+      "description": "职位相关的 CRUD 操作"
+    },
+    {
+      "name": "匹配操作",
+      "item": [
+        {
+          "name": "点赞职位 (Like)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobId\": \"cljob123...\",\n  \"action\": \"like\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/match",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "match"]
+            },
+            "description": "候选人对某个职位表示感兴趣（点赞）。jobId 需要从 GET /api/jobs 的返回中获取。"
+          },
+          "response": []
+        },
+        {
+          "name": "略过职位 (Pass)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              },
+              {
+                "key": "Cookie",
+                "value": "{{sessionCookie}}",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"jobId\": \"cljob123...\",\n  \"action\": \"pass\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/match",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "match"]
+            },
+            "description": "候选人对某个职位表示不感兴趣（略过）。jobId 需要从 GET /api/jobs 的返回中获取。"
+          },
+          "response": []
+        }
+      ],
+      "description": "候选人对职位的操作（点赞/略过），用于后续的匹配推荐"
+    }
+  ]
+}

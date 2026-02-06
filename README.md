@@ -1,36 +1,93 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Boss SecondMe - AI 招聘匹配应用
 
-## Getting Started
+基于 SecondMe API 开发的 AI 招聘匹配应用，实现候选人与招聘方的智能匹配和对话。
 
-First, run the development server:
+## 快速开始
+
+### 本地开发
 
 ```bash
+# 1. 安装依赖
+npm install
+
+# 2. 配置环境变量（创建 .env.local 文件）
+# 参考 .env.example 或查看 doc/DEPLOY.md
+
+# 3. 初始化数据库
+npx prisma migrate deploy
+# 或
+npx prisma db push
+
+# 4. 生成 Prisma Client
+npx prisma generate
+
+# 5. 启动开发服务器
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+访问 [http://localhost:3000](http://localhost:3000) 查看应用。
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 部署到 Vercel
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+**详细部署指南：** 查看 [../doc/DEPLOY.md](../doc/DEPLOY.md) 获取完整的部署步骤（小白友好版）
 
-## Learn More
+**快速检查清单：** 查看 [../doc/QUICK_START.md](../doc/QUICK_START.md) 获取快速部署检查清单
 
-To learn more about Next.js, take a look at the following resources:
+部署步骤概览：
+1. 准备 PostgreSQL 数据库
+2. 本地测试构建：`npm run build`
+3. 配置环境变量
+4. 推送到 GitHub
+5. 在 Vercel 导入项目并配置
+6. 部署后更新 Redirect URI
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 项目特性
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- ✅ OAuth2 认证（SecondMe）
+- ✅ 双向匹配（候选人和招聘方）
+- ✅ AI 对话匹配（两个 SecondMe AI 自动对话）
+- ✅ 流式对话响应
+- ✅ 职位管理
+- ✅ 匹配广场（类似 Tinder 的卡片式浏览）
 
-## Deploy on Vercel
+## 技术栈
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- **Next.js 16** - React 框架，使用 App Router
+- **TypeScript** - 类型安全
+- **Tailwind CSS** - 实用优先的 CSS 框架
+- **PostgreSQL** - 关系型数据库
+- **Prisma** - 现代化 ORM
+- **SecondMe API** - OAuth2 + Chat + User Info
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 项目文档
+
+- [开发指南](./SECONDME_DEVELOPMENT_GUIDE.md) - 详细的开发文档
+- [部署指南](../doc/DEPLOY.md) - 完整的部署步骤
+- [快速开始](../doc/QUICK_START.md) - 快速部署检查清单
+- [CLAUDE.md](./CLAUDE.md) - 项目配置说明
+
+## 环境变量
+
+```env
+# SecondMe OAuth2 配置
+SECONDME_CLIENT_ID=your_client_id
+SECONDME_CLIENT_SECRET=your_client_secret
+SECONDME_REDIRECT_URI=http://localhost:3000/api/auth/callback
+
+# SecondMe API 配置
+SECONDME_API_BASE_URL=https://app.mindos.com/gate/lab
+SECONDME_OAUTH_URL=https://go.second.me/oauth/
+
+# 数据库
+DATABASE_URL=postgresql://user:password@host:5432/dbname
+
+# Next.js 配置（可选）
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+```
+
+## 参考资源
+
+- [SecondMe API 文档](https://develop-docs.second.me/zh/docs)
+- [Second-Me-Skills](https://github.com/mindverse/Second-Me-Skills)
+- [Next.js 文档](https://nextjs.org/docs)
+- [Prisma 文档](https://www.prisma.io/docs)

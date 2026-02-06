@@ -1,0 +1,163 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id               String             @id @default(cuid())
+  secondmeUserId   String             @unique @map("secondme_user_id")
+  accessToken      String             @map("access_token")
+  refreshToken     String             @map("refresh_token")
+  tokenExpiresAt   DateTime           @map("token_expires_at")
+  avatar           String?            @map("avatar") // SecondMe 头像 URL
+  name             String?            @map("name") // SecondMe 用户名
+  createdAt        DateTime           @default(now()) @map("created_at")
+  updatedAt        DateTime           @updatedAt @map("updated_at")
+
+  candidateProfile      CandidateProfile?
+  employerProfile       EmployerProfile?
+  matches               Match[]
+  aiMatchConversations  AIMatchConversation[]
+  friends               Friend[] @relation("UserFriends")
+  friendOf              Friend[] @relation("FriendUsers")
+
+  @@map("users")
+}
+
+model CandidateProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  name      String?
+  title     String?  // 当前职位/头衔
+  city      String?
+  yearsExp  Int?     @map("years_exp") // 工作年限
+  skills    String?  // 用逗号分隔的技能标签，后续也可以拆表
+  bio       String?  // 个人简介
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("candidate_profiles")
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  city      String?
+  website   String?
+  intro     String?  // 公司简介
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  employers EmployerProfile[]
+  jobs      Job[]
+
+  @@map("companies")
+}
+
+model EmployerProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique @map("user_id")
+  companyId String?  @map("company_id")
+  name      String?  // 负责人名字
+  title     String?  // 职位（HR、创始人等）
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user    User     @relation(fields: [userId], references: [id])
+  company Company? @relation(fields: [companyId], references: [id])
+  jobs    Job[]
+
+  @@map("employer_profiles")
+}
+
+model Job {
+  id             String   @id @default(cuid())
+  employerId     String   @map("employer_id")
+  companyId      String?  @map("company_id")
+  title          String
+  description    String
+  city           String?
+  salaryMin      Int?     @map("salary_min")
+  salaryMax      Int?     @map("salary_max")
+  salaryCurrency String?  @map("salary_currency")
+  tags           String?  // 岗位标签，逗号分隔
+  status         String   @default("open") // open / closed
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  employer            EmployerProfile      @relation(fields: [employerId], references: [id])
+  company             Company?             @relation(fields: [companyId], references: [id])
+  matches             Match[]
+  aiMatchConversations AIMatchConversation[]
+
+  @@map("jobs")
+}
+
+model Match {
+  id         String   @id @default(cuid())
+  userId     String   @map("user_id")   // 候选人 User.id
+  jobId      String   @map("job_id")
+  status     String   @default("liked") // liked / passed / applied / rejected / hired
+  unlocked   Boolean  @default(false) @map("unlocked") // 是否已解锁对方信息
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  job  Job  @relation(fields: [jobId], references: [id])
+
+  @@unique([userId, jobId])
+  @@map("matches")
+}
+
+model AIMatchConversation {
+  id                      String   @id @default(cuid())
+  userId                  String   @map("user_id")   // 候选人 User.id
+  jobId                   String   @map("job_id")
+  candidateSecondMeUserId String   @map("candidate_secondme_user_id")
+  employerSecondMeUserId String   @map("employer_secondme_user_id")
+  status                  String   @default("pending") // pending / completed / failed
+  matchScore              Int?     @map("match_score") // 0-100
+  matchThreshold          Int      @default(60) @map("match_threshold")
+  conversationHistory     Json     @map("conversation_history") // 存储对话记录数组
+  currentTurn             Int      @default(0) @map("current_turn") // 当前轮数 0-5
+  evaluationReason        String?  @map("evaluation_reason")
+  candidateConversationId String?  @map("candidate_conversation_id") // SecondMe conversation ID
+  employerConversationId  String?  @map("employer_conversation_id") // SecondMe conversation ID
+  createdAt               DateTime @default(now()) @map("created_at")
+  updatedAt               DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id])
+  job  Job  @relation(fields: [jobId], references: [id])
+
+  @@unique([userId, jobId])
+  @@map("ai_match_conversations")
+}
+
+model Friend {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")   // 发起好友请求的用户 ID
+  friendId  String   @map("friend_id")  // 好友的用户 ID
+  status    String   @default("pending") // pending / accepted / blocked
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user   User @relation("UserFriends", fields: [userId], references: [id])
+  friend User @relation("FriendUsers", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+  @@map("friends")
+}
+
+
