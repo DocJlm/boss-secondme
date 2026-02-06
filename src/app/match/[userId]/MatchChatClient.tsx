@@ -178,7 +178,21 @@ export function MatchChatClient({
                   const parsed = JSON.parse(data);
 
                   if (parsed.type === "message") {
-                    setMessages((prev) => [...prev, parsed.message]);
+                    setMessages((prev) => {
+                      // 查找是否已存在相同turn和role的消息
+                      const existingIndex = prev.findIndex(
+                        m => m.turn === parsed.message.turn && m.role === parsed.message.role
+                      );
+                      if (existingIndex >= 0) {
+                        // 更新现有消息
+                        const updated = [...prev];
+                        updated[existingIndex] = parsed.message;
+                        return updated;
+                      } else {
+                        // 添加新消息
+                        return [...prev, parsed.message];
+                      }
+                    });
                     const newProgress = (parsed.message.turn / 5) * 100;
                     setProgress(newProgress);
                   } else if (parsed.type === "progress") {
@@ -247,10 +261,19 @@ export function MatchChatClient({
 
                 if (parsed.type === "message") {
                   setMessages((prev) => {
-                    // 避免重复添加消息
-                    const exists = prev.some(m => m.turn === parsed.message.turn && m.role === parsed.message.role);
-                    if (exists) return prev;
-                    return [...prev, parsed.message];
+                    // 查找是否已存在相同turn和role的消息
+                    const existingIndex = prev.findIndex(
+                      m => m.turn === parsed.message.turn && m.role === parsed.message.role
+                    );
+                    if (existingIndex >= 0) {
+                      // 更新现有消息
+                      const updated = [...prev];
+                      updated[existingIndex] = parsed.message;
+                      return updated;
+                    } else {
+                      // 添加新消息
+                      return [...prev, parsed.message];
+                    }
                   });
                   const newProgress = (parsed.message.turn / 5) * 100;
                   setProgress(newProgress);
@@ -530,6 +553,14 @@ export function MatchChatClient({
                         });
                         const result = await response.json();
                         if (result.code === 0) {
+                          // 重置状态并重新开始对话
+                          setIsCompleted(false);
+                          setMatchScore(null);
+                          setMessages([]);
+                          setProgress(0);
+                          setIsLoading(true);
+                          setError(null);
+                          // 重新启动自动匹配
                           window.location.reload();
                         } else {
                           alert(result.message || "重置失败");

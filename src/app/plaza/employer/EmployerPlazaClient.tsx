@@ -381,7 +381,17 @@ export function EmployerPlazaClient({
             companyCity: employerProfile.company?.city || undefined,
             companyWebsite: employerProfile.company?.website || undefined,
             companyIntro: employerProfile.company?.intro || undefined,
-            jobs: employerProfile.jobs,
+            jobs: employerProfile.jobs.map(job => ({
+              id: job.id,
+              title: job.title,
+              description: job.description,
+              city: job.city,
+              salaryMin: job.salaryMin,
+              salaryMax: job.salaryMax,
+              salaryCurrency: job.salaryCurrency,
+              tags: job.tags || null,
+              status: "open",
+            })),
           }}
           onClose={() => setShowEditDialog(false)}
           onSuccess={() => {

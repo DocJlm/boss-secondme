@@ -82,8 +82,8 @@ export async function GET(
           return;
         }
 
-        // 如果对话已完成，直接返回结果
-        if (conversation.status === "completed" && conversation.matchScore !== null) {
+        // 如果对话已完成，直接返回结果（但允许重置后重新开始）
+        if (conversation.status === "completed" && conversation.matchScore !== null && conversation.conversationHistory && Array.isArray(conversation.conversationHistory) && (conversation.conversationHistory as any[]).length > 0) {
           sendEvent({
             type: "message",
             message: { turn: 0, role: "system", content: "对话已完成" },
