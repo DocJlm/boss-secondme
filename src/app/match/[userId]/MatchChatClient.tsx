@@ -431,7 +431,7 @@ export function MatchChatClient({
                     {realtimeCandidateAvatar ? (
                       <Image
                         src={realtimeCandidateAvatar}
-                        alt={realtimeCandidateName || "候选人"}
+                        alt=""
                         width={40}
                         height={40}
                         className="w-full h-full object-cover"
@@ -477,7 +477,7 @@ export function MatchChatClient({
                     {realtimeEmployerAvatar ? (
                       <Image
                         src={realtimeEmployerAvatar}
-                        alt={realtimeEmployerName || "招聘方"}
+                        alt=""
                         width={40}
                         height={40}
                         className="w-full h-full object-cover"
@@ -492,20 +492,6 @@ export function MatchChatClient({
                 )}
               </div>
             ))}
-            {isLoading && (
-              <div className="flex justify-start items-start gap-3">
-                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                  <span className="text-blue-600 font-medium text-sm">HR</span>
-                </div>
-                <div className="bg-orange-50 border border-orange-200 rounded-2xl rounded-tl-sm px-4 py-3">
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" />
-                    <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }} />
-                    <div className="w-2 h-2 bg-orange-400 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }} />
-                  </div>
-                </div>
-              </div>
-            )}
             <div ref={messagesEndRef} />
           </div>
         )}

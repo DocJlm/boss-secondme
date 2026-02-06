@@ -87,10 +87,25 @@ export async function DELETE(
       );
     }
 
-    // 删除职位
-    await prisma.job.delete({
-      where: { id: jobId },
-    });
+    // 删除职位：先尝试物理删除，如果有外键约束则改为逻辑删除
+    try {
+      await prisma.job.delete({
+        where: { id: jobId },
+      });
+    } catch (deleteError: any) {
+      // 如果有外键约束错误（已有匹配记录等），改为逻辑删除
+      if (deleteError.code === "P2003") {
+        await prisma.job.update({
+          where: { id: jobId },
+          data: {
+            status: "closed",
+          },
+        });
+      } else {
+        // 其他错误继续抛出
+        throw deleteError;
+      }
+    }
 
     return NextResponse.json({ code: 0, message: "删除成功" });
   } catch (error: any) {
