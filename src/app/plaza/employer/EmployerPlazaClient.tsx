@@ -40,6 +40,8 @@ interface EmployerProfile {
     salaryMin: number | null;
     salaryMax: number | null;
     salaryCurrency: string | null;
+    tags?: string | null;
+    status?: string;
   }>;
 }
 
