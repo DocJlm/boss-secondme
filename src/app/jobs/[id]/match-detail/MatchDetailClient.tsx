@@ -14,7 +14,8 @@ interface MatchDetailClientProps {
     matchScore: number | null;
     matchThreshold: number;
     evaluationReason: string | null;
-    conversationHistory: ConversationMessage[];
+    // Prisma 中是 Json 字段，这里放宽类型，组件内部再做转换
+    conversationHistory: unknown;
     job: {
       id: string;
       title: string;

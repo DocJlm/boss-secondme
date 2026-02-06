@@ -24,6 +24,11 @@ interface EmployerProfile {
   jobs: Array<{
     id: string;
     title: string;
+    description?: string | null;
+    city?: string | null;
+    salaryMin?: number | null;
+    salaryMax?: number | null;
+    salaryCurrency?: string | null;
   }>;
 }
 
