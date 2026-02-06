@@ -41,7 +41,16 @@ export default async function MatchDetailPage({ params, searchParams }: MatchDet
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">匹配详情</h1>
-      <MatchDetailClient conversation={conversation} />
+      <MatchDetailClient conversation={{
+        id: conversation.id,
+        userId: conversation.userId,
+        jobId: conversation.jobId,
+        matchScore: conversation.matchScore,
+        matchThreshold: conversation.matchThreshold,
+        evaluationReason: conversation.evaluationReason,
+        conversationHistory: conversation.conversationHistory,
+        job: conversation.job,
+      }} />
     </div>
   );
 }

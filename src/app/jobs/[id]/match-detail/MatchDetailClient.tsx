@@ -11,6 +11,8 @@ interface ConversationMessage {
 interface MatchDetailClientProps {
   conversation: {
     id: string;
+    userId: string;
+    jobId: string;
     matchScore: number | null;
     matchThreshold: number;
     evaluationReason: string | null;
@@ -106,19 +108,57 @@ export function MatchDetailClient({ conversation }: MatchDetailClientProps) {
       </div>
 
       {/* 操作按钮 */}
-      <div className="flex gap-3">
-        <Link
-          href={`/jobs/${conversation.job.id}`}
-          className="flex-1 text-center px-6 py-3 rounded-lg text-base font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-        >
-          返回职位详情
-        </Link>
-        <Link
-          href="/jobs/recommend"
-          className="flex-1 text-center px-6 py-3 rounded-lg text-base font-medium bg-slate-200 text-slate-700 hover:bg-slate-300 transition-colors"
-        >
-          返回推荐列表
-        </Link>
+      <div className="space-y-3">
+        {conversation.matchScore !== null && conversation.matchScore < conversation.matchThreshold && (
+          <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+            <p className="text-sm text-orange-800 mb-3">
+              匹配度未达到阈值，你可以完善资料后重新匹配
+            </p>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                onClick={async () => {
+                  try {
+                    const response = await fetch(`/api/ai-match/conversations/${conversation.id}/reset`, {
+                      method: "POST",
+                    });
+                    const result = await response.json();
+                    if (result.code === 0) {
+                      window.location.href = `/match/${conversation.userId}?jobId=${conversation.jobId}`;
+                    } else {
+                      alert(result.message || "重置失败");
+                    }
+                  } catch (error) {
+                    console.error("重置对话失败:", error);
+                    alert("重置失败，请稍后重试");
+                  }
+                }}
+                className="px-4 py-2 bg-orange-600 text-white rounded-lg text-sm font-medium hover:bg-orange-700 transition-colors"
+              >
+                重新匹配
+              </button>
+              <Link
+                href="/plaza"
+                className="block text-center px-4 py-2 bg-white text-orange-600 border border-orange-300 rounded-lg text-sm font-medium hover:bg-orange-50 transition-colors"
+              >
+                完善资料
+              </Link>
+            </div>
+          </div>
+        )}
+        <div className="flex gap-3">
+          <Link
+            href={`/jobs/${conversation.job.id}`}
+            className="flex-1 text-center px-6 py-3 rounded-lg text-base font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+          >
+            返回职位详情
+          </Link>
+          <Link
+            href="/plaza"
+            className="flex-1 text-center px-6 py-3 rounded-lg text-base font-medium bg-slate-200 text-slate-700 hover:bg-slate-300 transition-colors"
+          >
+            返回推荐列表
+          </Link>
+        </div>
       </div>
     </div>
   );

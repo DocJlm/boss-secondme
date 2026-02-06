@@ -381,6 +381,7 @@ export function EmployerPlazaClient({
             companyCity: employerProfile.company?.city || undefined,
             companyWebsite: employerProfile.company?.website || undefined,
             companyIntro: employerProfile.company?.intro || undefined,
+            jobs: employerProfile.jobs,
           }}
           onClose={() => setShowEditDialog(false)}
           onSuccess={() => {

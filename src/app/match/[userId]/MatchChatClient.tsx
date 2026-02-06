@@ -517,16 +517,49 @@ export function MatchChatClient({
               </>
             )}
             {matchScore !== null && matchScore < 60 && (
-              <div className="w-full px-6 py-4 bg-slate-100 text-slate-600 rounded-xl font-medium text-center">
-                匹配度未达到阈值
+              <div className="space-y-3">
+                <div className="w-full px-6 py-4 bg-slate-100 text-slate-600 rounded-xl font-medium text-center">
+                  匹配度未达到阈值（{matchScore}%）
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={async () => {
+                      try {
+                        const response = await fetch(`/api/ai-match/conversations/${conversationId}/reset`, {
+                          method: "POST",
+                        });
+                        const result = await response.json();
+                        if (result.code === 0) {
+                          window.location.reload();
+                        } else {
+                          alert(result.message || "重置失败");
+                        }
+                      } catch (error) {
+                        console.error("重置对话失败:", error);
+                        alert("重置失败，请稍后重试");
+                      }
+                    }}
+                    className="px-6 py-4 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-colors shadow-lg"
+                  >
+                    重新匹配
+                  </button>
+                  <Link
+                    href={isCandidate ? "/plaza" : "/plaza/employer"}
+                    className="block text-center px-6 py-4 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
+                  >
+                    完善资料
+                  </Link>
+                </div>
               </div>
             )}
-            <Link
-              href={isCandidate ? "/plaza" : "/plaza/employer"}
-              className="block w-full text-center px-6 py-4 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
-            >
-              返回广场
-            </Link>
+            {matchScore !== null && matchScore >= 60 && (
+              <Link
+                href={isCandidate ? "/plaza" : "/plaza/employer"}
+                className="block w-full text-center px-6 py-4 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
+              >
+                返回广场
+              </Link>
+            )}
           </div>
         </div>
       )}

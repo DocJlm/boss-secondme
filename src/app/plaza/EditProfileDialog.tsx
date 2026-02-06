@@ -60,6 +60,7 @@ export function EditProfileDialog({
             <EmployerProfileForm
               mode="edit"
               initialData={initialData}
+              initialJobs={initialData?.jobs || []}
               onSuccess={handleSuccess}
               onCancel={onClose}
             />
