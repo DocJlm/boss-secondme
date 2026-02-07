@@ -67,7 +67,7 @@ interface JobWithScore {
 interface PlazaClientProps {
   employers: Employer[];
   employersWithScores?: Array<{ employer: Employer; matchScore: number }>;
-  jobsWithScoresMap?: Map<string, JobWithScore[]>;
+  jobsWithScoresMap?: Record<string, JobWithScore[]>;
   candidateProfile: CandidateProfile;
   candidateUserId: string;
   totalCount?: number;
@@ -103,7 +103,7 @@ export function PlazaClient({
   const [selectedJobIds, setSelectedJobIds] = useState<Map<string, string>>(() => {
     const map = new Map<string, string>();
     if (jobsWithScoresMap) {
-      jobsWithScoresMap.forEach((jobsWithScores, employerId) => {
+      Object.entries(jobsWithScoresMap).forEach(([employerId, jobsWithScores]) => {
         // 默认选择匹配度最高的职位（第一个，因为已按匹配度排序）
         if (jobsWithScores.length > 0) {
           map.set(employerId, jobsWithScores[0].job.id);
@@ -377,7 +377,7 @@ export function PlazaClient({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredAndSortedEmployers.map((employer) => {
                 // 获取该招聘方的职位匹配度信息
-                const jobsWithScores = jobsWithScoresMap?.get(employer.id) || [];
+                const jobsWithScores = jobsWithScoresMap?.[employer.id] || [];
                 // 获取选中的职位ID，如果没有则使用匹配度最高的职位
                 const selectedJobId = selectedJobIds.get(employer.id) || (jobsWithScores.length > 0 ? jobsWithScores[0].job.id : null);
                 // 找到选中的职位信息

@@ -98,12 +98,11 @@ export default async function PlazaPage() {
     });
 
   // 构建 jobsWithScoresMap，key 为 employer.id
-  const jobsWithScoresMap = new Map(
-    employersWithScores.map((item) => [
-      item.employer.id,
-      item.jobsWithScores,
-    ])
-  );
+  // 转换为普通对象以便序列化传递到客户端
+  const jobsWithScoresMap: Record<string, Array<{ job: any; matchScore: number }>> = {};
+  employersWithScores.forEach((item) => {
+    jobsWithScoresMap[item.employer.id] = item.jobsWithScores;
+  });
 
   // 统计每个招聘方的沟通次数
   const employerUserIds = employers.map(e => e.user.id);
