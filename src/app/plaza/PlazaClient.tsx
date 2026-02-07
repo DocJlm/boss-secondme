@@ -459,13 +459,13 @@ export function PlazaClient({
                           </select>
                         </div>
                       )}
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 mt-3">
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             setViewingEmployer(employer);
                           }}
-                          className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-slate-100 text-slate-700 hover:bg-slate-200 transition-all"
+                          className="flex-1 px-3 py-2 rounded-lg text-sm font-medium bg-blue-50 text-blue-700 border border-blue-200 hover:bg-blue-100 hover:border-blue-300 transition-all"
                         >
                           查看资料
                         </button>
