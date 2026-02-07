@@ -566,6 +566,160 @@ export function PlazaClient({
           }}
         />
       )}
+
+      {/* 查看招聘方资料对话框 */}
+      {viewingEmployer && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold text-slate-900">招聘方资料</h2>
+                <button
+                  onClick={() => setViewingEmployer(null)}
+                  className="text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  <svg
+                    className="w-6 h-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M6 18L18 6M6 6l12 12"
+                    />
+                  </svg>
+                </button>
+              </div>
+
+              <div className="space-y-6">
+                {/* 公司信息 */}
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-3">公司信息</h3>
+                  <div className="space-y-2">
+                    <div>
+                      <span className="text-sm font-medium text-slate-700">公司名称：</span>
+                      <span className="text-sm text-slate-900 ml-2">
+                        {viewingEmployer.company?.name || "未填写"}
+                      </span>
+                    </div>
+                    {viewingEmployer.company?.city && (
+                      <div>
+                        <span className="text-sm font-medium text-slate-700">所在城市：</span>
+                        <span className="text-sm text-slate-900 ml-2">
+                          {viewingEmployer.company.city}
+                        </span>
+                      </div>
+                    )}
+                    {viewingEmployer.company?.website && (
+                      <div>
+                        <span className="text-sm font-medium text-slate-700">公司网站：</span>
+                        <a
+                          href={viewingEmployer.company.website}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm text-blue-600 hover:text-blue-700 ml-2"
+                        >
+                          {viewingEmployer.company.website}
+                        </a>
+                      </div>
+                    )}
+                    {viewingEmployer.company?.intro && (
+                      <div>
+                        <span className="text-sm font-medium text-slate-700">公司简介：</span>
+                        <p className="text-sm text-slate-700 mt-1 whitespace-pre-wrap">
+                          {viewingEmployer.company.intro}
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 招聘人信息 */}
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900 mb-3">招聘人信息</h3>
+                  <div className="space-y-2">
+                    {(viewingEmployer.user.name || viewingEmployer.name) && (
+                      <div>
+                        <span className="text-sm font-medium text-slate-700">姓名：</span>
+                        <span className="text-sm text-slate-900 ml-2">
+                          {viewingEmployer.user.name || viewingEmployer.name}
+                        </span>
+                      </div>
+                    )}
+                    {viewingEmployer.title && (
+                      <div>
+                        <span className="text-sm font-medium text-slate-700">职位：</span>
+                        <span className="text-sm text-slate-900 ml-2">
+                          {viewingEmployer.title}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 职位列表 */}
+                {viewingEmployer.jobs.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-slate-900 mb-3">
+                      招聘职位 ({viewingEmployer.jobs.length})
+                    </h3>
+                    <div className="space-y-4">
+                      {viewingEmployer.jobs.map((job) => {
+                        const jobWithScore = jobsWithScoresMap?.[viewingEmployer.id]?.find(
+                          (jws) => jws.job.id === job.id
+                        );
+                        return (
+                          <div
+                            key={job.id}
+                            className="p-4 rounded-lg border border-slate-200 bg-slate-50"
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <h4 className="font-semibold text-slate-900">{job.title}</h4>
+                              {jobWithScore && (
+                                <span className="px-2 py-1 rounded-full bg-orange-100 text-orange-700 text-xs font-medium">
+                                  匹配度 {jobWithScore.matchScore}%
+                                </span>
+                              )}
+                            </div>
+                            {job.city && (
+                              <p className="text-sm text-slate-600 mb-1">📍 {job.city}</p>
+                            )}
+                            {(job.salaryMin || job.salaryMax) && (
+                              <p className="text-sm text-slate-600 mb-2">
+                                💰 {job.salaryMin || "面议"}
+                                {job.salaryMax && job.salaryMin ? `-${job.salaryMax}` : ""}{" "}
+                                {job.salaryCurrency || "元"}
+                              </p>
+                            )}
+                            <p className="text-sm text-slate-700 whitespace-pre-wrap line-clamp-3">
+                              {job.description}
+                            </p>
+                            <button
+                              onClick={() => {
+                                setViewingEmployer(null);
+                                const newSelectedJobIds = new Map(selectedJobIds);
+                                newSelectedJobIds.set(viewingEmployer.id, job.id);
+                                setSelectedJobIds(newSelectedJobIds);
+                                handleMatch(viewingEmployer, job.id);
+                              }}
+                              className="mt-3 px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 transition-all"
+                            >
+                              选择此职位并匹配
+                            </button>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
