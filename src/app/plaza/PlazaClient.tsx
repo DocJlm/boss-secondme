@@ -20,6 +20,7 @@ interface Employer {
     id: string;
     name: string;
     city: string | null;
+    website: string | null;
     intro: string | null;
   } | null;
   jobs: Array<{
