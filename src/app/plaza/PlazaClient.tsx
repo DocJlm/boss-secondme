@@ -51,9 +51,23 @@ interface RankingItem {
   matchScore: number;
 }
 
+interface JobWithScore {
+  job: {
+    id: string;
+    title: string;
+    description: string;
+    city: string | null;
+    salaryMin: number | null;
+    salaryMax: number | null;
+    salaryCurrency: string | null;
+  };
+  matchScore: number;
+}
+
 interface PlazaClientProps {
   employers: Employer[];
   employersWithScores?: Array<{ employer: Employer; matchScore: number }>;
+  jobsWithScoresMap?: Map<string, JobWithScore[]>;
   candidateProfile: CandidateProfile;
   candidateUserId: string;
   totalCount?: number;
@@ -63,6 +77,7 @@ interface PlazaClientProps {
 export function PlazaClient({
   employers,
   employersWithScores = [],
+  jobsWithScoresMap,
   candidateProfile,
   candidateUserId,
   totalCount = 0,
@@ -83,6 +98,20 @@ export function PlazaClient({
   const [selectedJobType, setSelectedJobType] = useState<string>("");
   const [sortBy, setSortBy] = useState<"match" | "time">("match");
   const [showFilters, setShowFilters] = useState(false);
+  
+  // 跟踪每个招聘方选中的职位ID（key为employerId，value为jobId）
+  const [selectedJobIds, setSelectedJobIds] = useState<Map<string, string>>(() => {
+    const map = new Map<string, string>();
+    if (jobsWithScoresMap) {
+      jobsWithScoresMap.forEach((jobsWithScores, employerId) => {
+        // 默认选择匹配度最高的职位（第一个，因为已按匹配度排序）
+        if (jobsWithScores.length > 0) {
+          map.set(employerId, jobsWithScores[0].job.id);
+        }
+      });
+    }
+    return map;
+  });
 
   // 获取所有城市列表
   const allCities = useMemo(() => {
@@ -347,10 +376,14 @@ export function PlazaClient({
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
               {filteredAndSortedEmployers.map((employer) => {
-                const matchScore = employersWithScores.find(
-                  (item) => item.employer.id === employer.id
-                )?.matchScore;
-                const selectedJob = employer.jobs[0];
+                // 获取该招聘方的职位匹配度信息
+                const jobsWithScores = jobsWithScoresMap?.get(employer.id) || [];
+                // 获取选中的职位ID，如果没有则使用匹配度最高的职位
+                const selectedJobId = selectedJobIds.get(employer.id) || (jobsWithScores.length > 0 ? jobsWithScores[0].job.id : null);
+                // 找到选中的职位信息
+                const selectedJobWithScore = jobsWithScores.find(jws => jws.job.id === selectedJobId);
+                const selectedJob = selectedJobWithScore?.job;
+                const selectedJobMatchScore = selectedJobWithScore?.matchScore;
                 
                 return (
                   <div
@@ -374,11 +407,11 @@ export function PlazaClient({
                           </span>
                         )}
                       </div>
-                      {matchScore !== undefined && (
+                      {selectedJobMatchScore !== undefined && (
                         <div className="absolute top-2 right-2">
                           <div className="px-2 py-1 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 shadow-md">
                             <span className="text-xs font-semibold text-white">
-                              {matchScore}%
+                              {selectedJobMatchScore}%
                             </span>
                           </div>
                         </div>
@@ -397,14 +430,35 @@ export function PlazaClient({
                         <p className="text-xs text-slate-500 mb-2">📍 {employer.company.city}</p>
                       )}
                       {selectedJob && (
-                        <p className="text-xs text-slate-600 mb-3 line-clamp-1">
+                        <p className="text-xs text-slate-600 mb-2 line-clamp-1">
                           💼 {selectedJob.title}
                         </p>
                       )}
+                      {/* 职位选择器：如果有多个职位，显示下拉选择器 */}
+                      {jobsWithScores.length > 1 && (
+                        <div className="mb-3">
+                          <select
+                            value={selectedJobId || ""}
+                            onChange={(e) => {
+                              const newSelectedJobIds = new Map(selectedJobIds);
+                              newSelectedJobIds.set(employer.id, e.target.value);
+                              setSelectedJobIds(newSelectedJobIds);
+                            }}
+                            className="w-full px-3 py-2 rounded-lg border border-orange-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-xs shadow-sm"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            {jobsWithScores.map((jws) => (
+                              <option key={jws.job.id} value={jws.job.id}>
+                                {jws.job.title} ({jws.matchScore}%)
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      )}
                       <button
                         onClick={() => {
-                          if (selectedJob) {
-                            handleMatch(employer, selectedJob.id);
+                          if (selectedJobId) {
+                            handleMatch(employer, selectedJobId);
                           }
                         }}
                         className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 transition-all"

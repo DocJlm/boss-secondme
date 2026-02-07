@@ -79,19 +79,31 @@ export default async function PlazaPage() {
 
   const employers = await getEmployers(user.candidateProfile);
 
-  // 计算每个招聘方的匹配度（取最高分）
+  // 计算每个招聘方的匹配度（取最高分）和每个职位的匹配度
   const employersWithScores = employers
     .filter((employer) => employer.jobs.length > 0)
     .map((employer) => {
-      const jobScores = employer.jobs.map((job) => 
-        calculateMatchScore(user.candidateProfile!, job)
-      );
-      const maxMatchScore = jobScores.length > 0 ? Math.max(...jobScores) : 0;
+      const jobScores = employer.jobs.map((job) => ({
+        job,
+        matchScore: calculateMatchScore(user.candidateProfile!, job),
+      }));
+      // 按匹配度从高到低排序
+      jobScores.sort((a, b) => b.matchScore - a.matchScore);
+      const maxMatchScore = jobScores.length > 0 ? jobScores[0].matchScore : 0;
       return {
         employer,
         matchScore: maxMatchScore,
+        jobsWithScores: jobScores,
       };
     });
+
+  // 构建 jobsWithScoresMap，key 为 employer.id
+  const jobsWithScoresMap = new Map(
+    employersWithScores.map((item) => [
+      item.employer.id,
+      item.jobsWithScores,
+    ])
+  );
 
   // 统计每个招聘方的沟通次数
   const employerUserIds = employers.map(e => e.user.id);
@@ -119,7 +131,8 @@ export default async function PlazaPage() {
       0
     );
     return {
-      ...item,
+      employer: item.employer,
+      matchScore: item.matchScore,
       conversationCount: maxConversationCount,
     };
   });
@@ -142,7 +155,11 @@ export default async function PlazaPage() {
     <div className="flex min-h-screen flex-col bg-slate-50">
       <PlazaClient
         employers={employers}
-        employersWithScores={employersWithScores}
+        employersWithScores={employersWithStats.map(item => ({
+          employer: item.employer,
+          matchScore: item.matchScore,
+        }))}
+        jobsWithScoresMap={jobsWithScoresMap}
         candidateProfile={user.candidateProfile}
         candidateUserId={sessionUserId}
         totalCount={employers.length}
