@@ -93,6 +93,51 @@ export default async function PlazaPage() {
       };
     });
 
+  // 统计每个招聘方的沟通次数
+  const employerUserIds = employers.map(e => e.user.id);
+  const jobIds = employers.flatMap(e => e.jobs.map(j => j.id));
+  const conversationCounts = await prisma.aIMatchConversation.groupBy({
+    by: ['jobId'],
+    where: {
+      userId: sessionUserId,
+      jobId: { in: jobIds },
+    },
+    _count: {
+      id: true,
+    },
+  });
+
+  const conversationCountMap = new Map(
+    conversationCounts.map(item => [item.jobId, item._count.id])
+  );
+
+  // 为每个招聘方添加沟通次数（取最高值）
+  const employersWithStats = employersWithScores.map(item => {
+    const employerJobIds = item.employer.jobs.map(j => j.id);
+    const maxConversationCount = Math.max(
+      ...employerJobIds.map(jobId => conversationCountMap.get(jobId) || 0),
+      0
+    );
+    return {
+      ...item,
+      conversationCount: maxConversationCount,
+    };
+  });
+
+  // 按匹配度排序（匹配度高的在前面）
+  employersWithStats.sort((a, b) => b.matchScore - a.matchScore);
+  
+  // 排行榜：按沟通次数排序
+  const rankingList = [...employersWithStats]
+    .sort((a, b) => b.conversationCount - a.conversationCount)
+    .slice(0, 10)
+    .map((item, index) => ({
+      rank: index + 1,
+      employer: item.employer,
+      conversationCount: item.conversationCount,
+      matchScore: item.matchScore,
+    }));
+
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       <PlazaClient
@@ -100,6 +145,8 @@ export default async function PlazaPage() {
         employersWithScores={employersWithScores}
         candidateProfile={user.candidateProfile}
         candidateUserId={sessionUserId}
+        totalCount={employers.length}
+        rankingList={rankingList}
       />
     </div>
   );

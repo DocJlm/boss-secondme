@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { EmployerCard } from "./EmployerCard";
 import { EditProfileDialog } from "./EditProfileDialog";
 
@@ -43,11 +44,20 @@ interface CandidateProfile {
   bio: string | null;
 }
 
+interface RankingItem {
+  rank: number;
+  employer: Employer;
+  conversationCount: number;
+  matchScore: number;
+}
+
 interface PlazaClientProps {
   employers: Employer[];
   employersWithScores?: Array<{ employer: Employer; matchScore: number }>;
   candidateProfile: CandidateProfile;
   candidateUserId: string;
+  totalCount?: number;
+  rankingList?: RankingItem[];
 }
 
 export function PlazaClient({
@@ -55,15 +65,15 @@ export function PlazaClient({
   employersWithScores = [],
   candidateProfile,
   candidateUserId,
+  totalCount = 0,
+  rankingList = [],
 }: PlazaClientProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [showEditDialog, setShowEditDialog] = useState(() => {
     const hasBasicInfo =
       candidateProfile?.title ||
       candidateProfile?.city ||
       candidateProfile?.skills ||
       candidateProfile?.bio;
-    // 如果还没有填写任何基础信息，首次进入时自动弹出编辑资料
     return !hasBasicInfo;
   });
   
@@ -153,31 +163,6 @@ export function PlazaClient({
     return filtered;
   }, [employers, employersWithScores, searchQuery, selectedCity, selectedJobType, sortBy]);
 
-  // 重置当前索引当筛选结果改变时
-  if (currentIndex >= filteredAndSortedEmployers.length && filteredAndSortedEmployers.length > 0) {
-    setCurrentIndex(0);
-  }
-
-  const isEmpty = filteredAndSortedEmployers.length === 0;
-
-  const currentEmployer = filteredAndSortedEmployers[currentIndex];
-  const currentMatchScore = currentEmployer
-    ? employersWithScores.find((item) => item.employer.id === currentEmployer.id)
-        ?.matchScore
-    : undefined;
-
-  const handleNext = () => {
-    if (currentIndex < employers.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
-
   const clearFilters = () => {
     setSearchQuery("");
     setSelectedCity("");
@@ -187,89 +172,87 @@ export function PlazaClient({
 
   const hasActiveFilters = searchQuery || selectedCity || selectedJobType;
 
+  const handleMatch = (employer: Employer, jobId: string) => {
+    window.location.href = `/match/${candidateUserId}?jobId=${jobId}`;
+  };
+
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto w-full bg-white">
-      {/* 头部 */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-orange-100 bg-white/95 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
-        <Link
-          href="/"
-          className="flex items-center text-slate-600 hover:text-slate-900 transition-colors"
-        >
-          <svg
-            className="w-5 h-5 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          返回首页
-        </Link>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-transparent transition-all flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-            </svg>
-            筛选
-            {hasActiveFilters && (
-              <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-            )}
-          </button>
-          <button
-            onClick={() => setShowEditDialog(true)}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
-          >
-            编辑资料
-          </button>
-          <button
-            onClick={async () => {
-              try {
-                const response = await fetch("/api/auth/logout", {
-                  method: "POST",
-                });
-                if (response.ok) {
-                  window.location.href = "/";
-                }
-              } catch (error) {
-                console.error("退出登录失败:", error);
-              }
-            }}
-            className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors"
-            title="退出登录"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
+    <div className="flex h-screen bg-gradient-to-b from-orange-50/30 via-white to-orange-50/30">
+      {/* 主内容区 */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 头部 */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-orange-100 bg-white/95 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-slate-600">
-                {currentIndex + 1} / {filteredAndSortedEmployers.length}
-              </span>
-              {filteredAndSortedEmployers.length > 0 && (
-                <span className="text-xs text-slate-400">
-                  ({employers.length} 个招聘方在线)
-                </span>
-              )}
+            <Link
+              href="/"
+              className="flex items-center text-slate-600 hover:text-slate-900 transition-colors"
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              返回首页
+            </Link>
+            <div className="text-sm text-slate-600">
+              <span className="font-medium">探索 AI 伙伴</span>
+              <span className="ml-2 text-orange-600">{totalCount || filteredAndSortedEmployers.length} 位用户</span>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-transparent transition-all flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              筛选
+              {hasActiveFilters && (
+                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+              )}
+            </button>
+            <button
+              onClick={() => setShowEditDialog(true)}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
+            >
+              编辑资料
+            </button>
+            <button
+              onClick={async () => {
+                try {
+                  const response = await fetch("/api/auth/logout", {
+                    method: "POST",
+                  });
+                  if (response.ok) {
+                    window.location.href = "/";
+                  }
+                } catch (error) {
+                  console.error("退出登录失败:", error);
+                }
+              }}
+              className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors"
+              title="退出登录"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* 筛选栏 */}
-      {showFilters && (
-        <div className="px-6 py-4 border-b border-orange-100 bg-gradient-to-b from-orange-50/50 to-white animate-in slide-in-from-top duration-200">
-          <div className="space-y-3">
-            {/* 搜索框 */}
-            <div>
+        {/* 筛选栏 */}
+        {showFilters && (
+          <div className="px-6 py-4 border-b border-orange-100 bg-gradient-to-b from-orange-50/50 to-white animate-in slide-in-from-top duration-200">
+            <div className="space-y-3">
               <input
                 type="text"
                 placeholder="搜索职位、公司名称..."
@@ -277,16 +260,11 @@ export function PlazaClient({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2 rounded-xl border border-orange-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all shadow-sm"
               />
-            </div>
-
-            {/* 筛选条件 */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* 城市筛选 */}
-              <div>
+              <div className="grid grid-cols-2 gap-3">
                 <select
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 rounded-xl border border-orange-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-sm shadow-sm"
                 >
                   <option value="">全部城市</option>
                   {allCities.map((city) => (
@@ -295,99 +273,219 @@ export function PlazaClient({
                     </option>
                   ))}
                 </select>
-              </div>
-
-              {/* 职位类型筛选 */}
-              <div>
                 <select
                   value={selectedJobType}
                   onChange={(e) => setSelectedJobType(e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-transparent text-sm"
+                  className="w-full px-3 py-2 rounded-xl border border-orange-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all text-sm shadow-sm"
                 >
                   <option value="">全部类型</option>
                   <option value="technical">技术岗位</option>
                   <option value="non-technical">非技术岗位</option>
                 </select>
               </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-600">排序：</span>
+                <button
+                  onClick={() => setSortBy("match")}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                    sortBy === "match"
+                      ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                      : "bg-slate-200 text-slate-700 hover:bg-orange-50 hover:text-orange-700"
+                  }`}
+                >
+                  匹配度
+                </button>
+                <button
+                  onClick={() => setSortBy("time")}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                    sortBy === "time"
+                      ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                      : "bg-slate-200 text-slate-700 hover:bg-orange-50 hover:text-orange-700"
+                  }`}
+                >
+                  最新发布
+                </button>
+              </div>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                >
+                  清除所有筛选
+                </button>
+              )}
             </div>
+          </div>
+        )}
 
-            {/* 排序 */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600">排序：</span>
-              <button
-                onClick={() => setSortBy("match")}
-                className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
-                  sortBy === "match"
-                    ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
-                    : "bg-slate-200 text-slate-700 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-transparent"
-                }`}
-              >
-                匹配度
-              </button>
-              <button
-                onClick={() => setSortBy("time")}
-                className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
-                  sortBy === "time"
-                    ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
-                    : "bg-slate-200 text-slate-700 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-transparent"
-                }`}
-              >
-                最新发布
-              </button>
+        {/* 卡片网格 */}
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          {filteredAndSortedEmployers.length === 0 ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <p className="text-slate-600 mb-4">
+                  {employers.length === 0
+                    ? "当前还没有招聘方发布职位，你可以先完善个人资料，稍后再来看看。"
+                    : "没有找到匹配的招聘方，可以调整筛选条件或完善个人资料。"}
+                </p>
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="text-orange-600 hover:text-orange-700 font-medium mb-4"
+                  >
+                    清除所有筛选
+                  </button>
+                )}
+                <button
+                  onClick={() => setShowEditDialog(true)}
+                  className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
+                >
+                  填写 / 编辑个人基本信息
+                </button>
+              </div>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredAndSortedEmployers.map((employer) => {
+                const matchScore = employersWithScores.find(
+                  (item) => item.employer.id === employer.id
+                )?.matchScore;
+                const selectedJob = employer.jobs[0];
+                
+                return (
+                  <div
+                    key={employer.id}
+                    className="bg-white rounded-xl shadow-md border border-orange-100 hover:shadow-lg transition-all overflow-hidden"
+                  >
+                    <div className="relative">
+                      <div className="aspect-square bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden">
+                        {employer.user.avatar ? (
+                          <Image
+                            src={employer.user.avatar}
+                            alt={employer.user.name || employer.company?.name || "招聘方"}
+                            width={200}
+                            height={200}
+                            className="w-full h-full object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <span className="text-6xl text-orange-600 font-medium">
+                            {employer.user.name?.[0] || employer.company?.name?.[0] || "招"}
+                          </span>
+                        )}
+                      </div>
+                      {matchScore !== undefined && (
+                        <div className="absolute top-2 right-2">
+                          <div className="px-2 py-1 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 shadow-md">
+                            <span className="text-xs font-semibold text-white">
+                              {matchScore}%
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-slate-900 mb-1 truncate">
+                        {employer.company?.name || "未知公司"}
+                      </h3>
+                      {(employer.user.name || employer.name) && (
+                        <p className="text-sm text-slate-600 mb-2 truncate">
+                          {employer.user.name || employer.name}
+                        </p>
+                      )}
+                      {employer.company?.city && (
+                        <p className="text-xs text-slate-500 mb-2">📍 {employer.company.city}</p>
+                      )}
+                      {selectedJob && (
+                        <p className="text-xs text-slate-600 mb-3 line-clamp-1">
+                          💼 {selectedJob.title}
+                        </p>
+                      )}
+                      <button
+                        onClick={() => {
+                          if (selectedJob) {
+                            handleMatch(employer, selectedJob.id);
+                          }
+                        }}
+                        className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 transition-all"
+                      >
+                        开始匹配
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
 
-            {/* 清除筛选 */}
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+      {/* 右侧排行榜 */}
+      {rankingList.length > 0 && (
+        <div className="w-80 border-l border-orange-100 bg-white/95 backdrop-blur-sm overflow-y-auto">
+          <div className="p-4 sticky top-0 bg-white border-b border-orange-100">
+            <div className="flex items-center gap-2 mb-1">
+              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 className="text-sm font-semibold text-slate-900">热门排行</h3>
+            </div>
+            <p className="text-xs text-slate-500">最受欢迎的 AI 伙伴</p>
+          </div>
+          <div className="p-4 space-y-3">
+            {rankingList.map((item) => (
+              <div
+                key={item.employer.id}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
               >
-                清除所有筛选
-              </button>
-            )}
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden">
+                  {item.employer.user.avatar ? (
+                    <Image
+                      src={item.employer.user.avatar}
+                      alt={item.employer.user.name || item.employer.company?.name || "招聘方"}
+                      width={32}
+                      height={32}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <span className="text-sm text-orange-600 font-medium">
+                      {item.employer.user.name?.[0] || item.employer.company?.name?.[0] || "招"}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    {item.rank === 1 && (
+                      <span className="text-yellow-500">👑</span>
+                    )}
+                    {item.rank === 2 && (
+                      <span className="text-slate-400 font-bold">2</span>
+                    )}
+                    {item.rank === 3 && (
+                      <span className="text-orange-600 font-bold">3</span>
+                    )}
+                    {item.rank > 3 && (
+                      <span className="text-slate-400 text-xs font-medium">{item.rank}</span>
+                    )}
+                    <span className="text-sm font-medium text-slate-900 truncate">
+                      {item.employer.company?.name || item.employer.user.name || "招聘方"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500">
+                      {item.conversationCount} 次互动
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded text-xs bg-orange-100 text-orange-700">
+                      热门
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
-
-      {/* 内容区域 / 卡片区域 */}
-      <div className="flex-1 flex items-center justify-center px-6 py-8 bg-gradient-to-b from-orange-50/30 via-white to-orange-50/30">
-        {isEmpty ? (
-          <div className="text-center max-w-md">
-            <p className="text-slate-600 mb-4">
-              {employers.length === 0
-                ? "当前还没有招聘方发布职位，你可以先完善个人资料，稍后再来看看。"
-                : "没有找到匹配的招聘方，可以调整筛选条件或完善个人资料。"}
-            </p>
-            {(searchQuery || selectedCity || selectedJobType) && (
-              <button
-                onClick={clearFilters}
-                className="text-sm text-orange-600 hover:text-orange-700 font-medium mb-4"
-              >
-                清除所有筛选
-              </button>
-            )}
-            <button
-              onClick={() => setShowEditDialog(true)}
-              className="inline-flex items-center justify-center px-4 py-2 rounded-lg text-sm font-medium bg-blue-600 text-white hover:bg-blue-700 transition-colors"
-            >
-              填写 / 编辑个人基本信息
-            </button>
-          </div>
-        ) : (
-          <div className="relative w-full max-w-md">
-            <EmployerCard
-              employer={currentEmployer}
-              candidateProfile={candidateProfile}
-              candidateUserId={candidateUserId}
-              matchScore={currentMatchScore}
-              onNext={handleNext}
-              onPrev={handlePrev}
-              canNext={currentIndex < filteredAndSortedEmployers.length - 1}
-              canPrev={currentIndex > 0}
-            />
-          </div>
-        )}
-      </div>
 
       {showEditDialog && (
         <EditProfileDialog
@@ -395,7 +493,6 @@ export function PlazaClient({
           initialData={candidateProfile}
           onClose={() => setShowEditDialog(false)}
           onSuccess={() => {
-            // 编辑成功后刷新页面以获取最新资料和匹配结果
             window.location.reload();
           }}
         />

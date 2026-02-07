@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { CandidateCard } from "./CandidateCard";
 import { EditProfileDialog } from "../EditProfileDialog";
 
@@ -45,19 +46,30 @@ interface EmployerProfile {
   }>;
 }
 
+interface RankingItem {
+  rank: number;
+  candidate: Candidate;
+  conversationCount: number;
+  matchScore: number;
+}
+
 interface EmployerPlazaClientProps {
   candidates: Candidate[];
   candidatesWithScores?: Array<{ candidate: Candidate; matchScore: number }>;
   employerProfile: EmployerProfile;
+  totalCount?: number;
+  rankingList?: RankingItem[];
 }
 
 export function EmployerPlazaClient({
   candidates,
   candidatesWithScores = [],
   employerProfile,
+  totalCount = 0,
+  rankingList = [],
 }: EmployerPlazaClientProps) {
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedCandidate, setSelectedCandidate] = useState<Candidate | null>(null);
   
   // 筛选状态
   const [searchQuery, setSearchQuery] = useState("");
@@ -124,66 +136,11 @@ export function EmployerPlazaClient({
         return scoreB - scoreA;
       });
     } else if (sortBy === "time") {
-      // 按ID排序（近似按时间）
       filtered = filtered.sort((a, b) => b.id.localeCompare(a.id));
     }
 
     return filtered;
   }, [candidates, candidatesWithScores, searchQuery, selectedCity, selectedJobType, sortBy]);
-
-  // 重置当前索引当筛选结果改变时
-  if (currentIndex >= filteredAndSortedCandidates.length && filteredAndSortedCandidates.length > 0) {
-    setCurrentIndex(0);
-  }
-
-  if (filteredAndSortedCandidates.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-slate-600 mb-4">
-            {candidates.length === 0 ? "暂无候选人在线" : "没有找到匹配的候选人"}
-          </p>
-          {(searchQuery || selectedCity || selectedJobType) && (
-            <button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedCity("");
-                setSelectedJobType("");
-              }}
-              className="text-orange-600 hover:text-orange-700 font-medium mb-4 block mx-auto"
-            >
-              清除筛选条件
-            </button>
-          )}
-          <Link
-            href="/"
-            className="text-orange-600 hover:text-orange-700 font-medium"
-          >
-            返回首页
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
-  const currentCandidate = filteredAndSortedCandidates[currentIndex];
-  const currentMatchScore = currentCandidate
-    ? candidatesWithScores.find(
-        (item) => item.candidate.id === currentCandidate.id
-      )?.matchScore
-    : undefined;
-
-  const handleNext = () => {
-    if (currentIndex < candidates.length - 1) {
-      setCurrentIndex(currentIndex + 1);
-    }
-  };
-
-  const handlePrev = () => {
-    if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
-    }
-  };
 
   const clearFilters = () => {
     setSearchQuery("");
@@ -207,78 +164,80 @@ export function EmployerPlazaClient({
     }
   };
 
+  const handleCandidateClick = (candidate: Candidate) => {
+    setSelectedCandidate(candidate);
+  };
+
+  const handleMatch = (candidate: Candidate, jobId: string) => {
+    window.location.href = `/match/${candidate.user.id}?jobId=${jobId}`;
+  };
+
   return (
-    <div className="flex flex-col h-screen max-w-4xl mx-auto w-full bg-white">
-      {/* 头部 */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-orange-100 bg-white/95 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
-        <Link
-          href="/"
-          className="flex items-center text-slate-600 hover:text-slate-900 transition-colors"
-        >
-          <svg
-            className="w-5 h-5 mr-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M15 19l-7-7 7-7"
-            />
-          </svg>
-          返回首页
-        </Link>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowFilters(!showFilters)}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-transparent transition-all flex items-center gap-2"
-          >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-            </svg>
-            筛选
-            {hasActiveFilters && (
-              <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
-            )}
-          </button>
-          <button
-            onClick={() => setShowEditDialog(true)}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
-          >
-            编辑资料
-          </button>
-          <button
-            onClick={handleLogout}
-            className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors"
-            title="退出登录"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-            </svg>
-          </button>
+    <div className="flex h-screen bg-gradient-to-b from-orange-50/30 via-white to-orange-50/30">
+      {/* 主内容区 */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 头部 */}
+        <div className="flex items-center justify-between px-6 py-4 border-b border-orange-100 bg-white/95 backdrop-blur-sm sticky top-0 z-10 shadow-sm">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-slate-600 font-medium">
-                {currentIndex + 1} / {filteredAndSortedCandidates.length}
-              </span>
-              {filteredAndSortedCandidates.length > 0 && (
-                <span className="text-xs text-slate-400">
-                  ({candidates.length} 个候选人在线)
-                </span>
-              )}
+            <Link
+              href="/"
+              className="flex items-center text-slate-600 hover:text-slate-900 transition-colors"
+            >
+              <svg
+                className="w-5 h-5 mr-2"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+              返回首页
+            </Link>
+            <div className="text-sm text-slate-600">
+              <span className="font-medium">探索 AI 伙伴</span>
+              <span className="ml-2 text-orange-600">{totalCount || filteredAndSortedCandidates.length} 位用户</span>
             </div>
           </div>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowFilters(!showFilters)}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-transparent transition-all flex items-center gap-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+              </svg>
+              筛选
+              {hasActiveFilters && (
+                <span className="w-2 h-2 bg-orange-500 rounded-full"></span>
+              )}
+            </button>
+            <button
+              onClick={() => setShowEditDialog(true)}
+              className="px-4 py-2 text-sm font-medium text-slate-700 bg-slate-100 rounded-xl hover:bg-slate-200 transition-colors"
+            >
+              编辑资料
+            </button>
+            <button
+              onClick={handleLogout}
+              className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-orange-600 transition-colors"
+              title="退出登录"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+            </button>
+          </div>
         </div>
-      </div>
 
-      {/* 筛选栏 */}
-      {showFilters && (
-        <div className="px-6 py-4 border-b border-orange-100 bg-gradient-to-b from-orange-50/50 to-white animate-in slide-in-from-top duration-200">
-          <div className="space-y-3">
-            {/* 搜索框 */}
-            <div>
+        {/* 筛选栏 */}
+        {showFilters && (
+          <div className="px-6 py-4 border-b border-orange-100 bg-gradient-to-b from-orange-50/50 to-white animate-in slide-in-from-top duration-200">
+            <div className="space-y-3">
               <input
                 type="text"
                 placeholder="搜索候选人姓名、职位、技能..."
@@ -286,12 +245,7 @@ export function EmployerPlazaClient({
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full px-4 py-2 rounded-xl border border-orange-200 bg-white focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all shadow-sm"
               />
-            </div>
-
-            {/* 筛选条件 */}
-            <div className="grid grid-cols-2 gap-3">
-              {/* 城市筛选 */}
-              <div>
+              <div className="grid grid-cols-2 gap-3">
                 <select
                   value={selectedCity}
                   onChange={(e) => setSelectedCity(e.target.value)}
@@ -304,10 +258,6 @@ export function EmployerPlazaClient({
                     </option>
                   ))}
                 </select>
-              </div>
-
-              {/* 职位类型筛选 */}
-              <div>
                 <select
                   value={selectedJobType}
                   onChange={(e) => setSelectedJobType(e.target.value)}
@@ -318,60 +268,202 @@ export function EmployerPlazaClient({
                   <option value="non-technical">非技术岗位</option>
                 </select>
               </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-600">排序：</span>
+                <button
+                  onClick={() => setSortBy("match")}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                    sortBy === "match"
+                      ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                      : "bg-slate-200 text-slate-700 hover:bg-orange-50 hover:text-orange-700"
+                  }`}
+                >
+                  匹配度
+                </button>
+                <button
+                  onClick={() => setSortBy("time")}
+                  className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
+                    sortBy === "time"
+                      ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
+                      : "bg-slate-200 text-slate-700 hover:bg-orange-50 hover:text-orange-700"
+                  }`}
+                >
+                  最新注册
+                </button>
+              </div>
+              {hasActiveFilters && (
+                <button
+                  onClick={clearFilters}
+                  className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+                >
+                  清除所有筛选
+                </button>
+              )}
             </div>
+          </div>
+        )}
 
-            {/* 排序 */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-slate-600">排序：</span>
-              <button
-                onClick={() => setSortBy("match")}
-                className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
-                  sortBy === "match"
-                    ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
-                    : "bg-slate-200 text-slate-700 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-transparent"
-                }`}
-              >
-                匹配度
-              </button>
-              <button
-                onClick={() => setSortBy("time")}
-                className={`px-3 py-1.5 rounded-xl text-sm font-medium transition-all ${
-                  sortBy === "time"
-                    ? "bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-md"
-                    : "bg-slate-200 text-slate-700 hover:bg-orange-50 hover:text-orange-700 hover:border-orange-200 border border-transparent"
-                }`}
-              >
-                最新注册
-              </button>
+        {/* 卡片网格 */}
+        <div className="flex-1 overflow-y-auto px-6 py-6">
+          {filteredAndSortedCandidates.length === 0 ? (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center">
+                <p className="text-slate-600 mb-4">
+                  {candidates.length === 0 ? "暂无候选人在线" : "没有找到匹配的候选人"}
+                </p>
+                {hasActiveFilters && (
+                  <button
+                    onClick={clearFilters}
+                    className="text-orange-600 hover:text-orange-700 font-medium"
+                  >
+                    清除筛选条件
+                  </button>
+                )}
+              </div>
             </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {filteredAndSortedCandidates.map((candidate) => {
+                const matchScore = candidatesWithScores.find(
+                  (item) => item.candidate.id === candidate.id
+                )?.matchScore;
+                const selectedJob = employerProfile.jobs[0];
+                
+                return (
+                  <div
+                    key={candidate.id}
+                    className="bg-white rounded-xl shadow-md border border-orange-100 hover:shadow-lg transition-all cursor-pointer overflow-hidden"
+                    onClick={() => handleCandidateClick(candidate)}
+                  >
+                    <div className="relative">
+                      <div className="aspect-square bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden">
+                        {candidate.user.avatar ? (
+                          <Image
+                            src={candidate.user.avatar}
+                            alt={candidate.user.name || candidate.name || "候选人"}
+                            width={200}
+                            height={200}
+                            className="w-full h-full object-cover"
+                            unoptimized
+                          />
+                        ) : (
+                          <span className="text-6xl text-orange-600 font-medium">
+                            {candidate.user.name?.[0] || candidate.name?.[0] || "候"}
+                          </span>
+                        )}
+                      </div>
+                      {matchScore !== undefined && (
+                        <div className="absolute top-2 right-2">
+                          <div className="px-2 py-1 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 shadow-md">
+                            <span className="text-xs font-semibold text-white">
+                              {matchScore}%
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-4">
+                      <h3 className="font-semibold text-slate-900 mb-1 truncate">
+                        {candidate.user.name || candidate.name || "候选人"}
+                      </h3>
+                      {candidate.title && (
+                        <p className="text-sm text-slate-600 mb-2 truncate">{candidate.title}</p>
+                      )}
+                      {candidate.city && (
+                        <p className="text-xs text-slate-500 mb-2">📍 {candidate.city}</p>
+                      )}
+                      {candidate.bio && (
+                        <p className="text-xs text-slate-600 line-clamp-2 mb-3">
+                          {candidate.bio}
+                        </p>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (selectedJob) {
+                            handleMatch(candidate, selectedJob.id);
+                          }
+                        }}
+                        className="w-full px-3 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 transition-all"
+                      >
+                        开始匹配
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </div>
 
-            {/* 清除筛选 */}
-            {hasActiveFilters && (
-              <button
-                onClick={clearFilters}
-                className="text-sm text-orange-600 hover:text-orange-700 font-medium"
+      {/* 右侧排行榜 */}
+      {rankingList.length > 0 && (
+        <div className="w-80 border-l border-orange-100 bg-white/95 backdrop-blur-sm overflow-y-auto">
+          <div className="p-4 sticky top-0 bg-white border-b border-orange-100">
+            <div className="flex items-center gap-2 mb-1">
+              <svg className="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 className="text-sm font-semibold text-slate-900">热门排行</h3>
+            </div>
+            <p className="text-xs text-slate-500">最受欢迎的 AI 伙伴</p>
+          </div>
+          <div className="p-4 space-y-3">
+            {rankingList.map((item) => (
+              <div
+                key={item.candidate.id}
+                className="flex items-center gap-3 p-3 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
+                onClick={() => handleCandidateClick(item.candidate)}
               >
-                清除所有筛选
-              </button>
-            )}
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden">
+                  {item.candidate.user.avatar ? (
+                    <Image
+                      src={item.candidate.user.avatar}
+                      alt={item.candidate.user.name || item.candidate.name || "候选人"}
+                      width={32}
+                      height={32}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <span className="text-sm text-orange-600 font-medium">
+                      {item.candidate.user.name?.[0] || item.candidate.name?.[0] || "候"}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    {item.rank === 1 && (
+                      <span className="text-yellow-500">👑</span>
+                    )}
+                    {item.rank === 2 && (
+                      <span className="text-slate-400 font-bold">2</span>
+                    )}
+                    {item.rank === 3 && (
+                      <span className="text-orange-600 font-bold">3</span>
+                    )}
+                    {item.rank > 3 && (
+                      <span className="text-slate-400 text-xs font-medium">{item.rank}</span>
+                    )}
+                    <span className="text-sm font-medium text-slate-900 truncate">
+                      {item.candidate.user.name || item.candidate.name || "候选人"}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-slate-500">
+                      {item.conversationCount} 次互动
+                    </span>
+                    <span className="px-1.5 py-0.5 rounded text-xs bg-orange-100 text-orange-700">
+                      热门
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
-
-      {/* 卡片区域 */}
-      <div className="flex-1 flex items-center justify-center px-6 py-8 bg-gradient-to-b from-orange-50/30 via-white to-orange-50/30">
-        <div className="relative w-full max-w-md">
-          <CandidateCard
-            candidate={currentCandidate}
-            employerProfile={employerProfile}
-            matchScore={currentMatchScore}
-            onNext={handleNext}
-            onPrev={handlePrev}
-            canNext={currentIndex < filteredAndSortedCandidates.length - 1}
-            canPrev={currentIndex > 0}
-          />
-        </div>
-      </div>
       
       {showEditDialog && (
         <EditProfileDialog
@@ -397,7 +489,6 @@ export function EmployerPlazaClient({
           }}
           onClose={() => setShowEditDialog(false)}
           onSuccess={() => {
-            // 刷新页面以显示更新后的数据
             window.location.reload();
           }}
         />

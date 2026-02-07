@@ -133,7 +133,44 @@ export default async function EmployerPlazaPage() {
   const candidatesWithScores = Array.from(allCandidatesWithScores.values())
     .sort((a, b) => b.matchScore - a.matchScore);
   
-  const candidates = candidatesWithScores.map(item => item.candidate);
+  // 统计每个候选人的沟通次数
+  const candidateIds = candidatesWithScores.map(item => item.candidate.user.id);
+  const conversationCounts = await prisma.aIMatchConversation.groupBy({
+    by: ['userId'],
+    where: {
+      userId: { in: candidateIds },
+      jobId: { in: jobs.map(j => j.id) },
+    },
+    _count: {
+      id: true,
+    },
+  });
+
+  const conversationCountMap = new Map(
+    conversationCounts.map(item => [item.userId, item._count.id])
+  );
+
+  // 添加沟通次数到候选人数据
+  const candidatesWithStats = candidatesWithScores.map(item => ({
+    ...item,
+    conversationCount: conversationCountMap.get(item.candidate.user.id) || 0,
+  }));
+
+  // 按匹配度排序（匹配度高的在前面）
+  candidatesWithStats.sort((a, b) => b.matchScore - a.matchScore);
+  
+  const candidates = candidatesWithStats.map(item => item.candidate);
+  
+  // 排行榜：按沟通次数排序
+  const rankingList = [...candidatesWithStats]
+    .sort((a, b) => b.conversationCount - a.conversationCount)
+    .slice(0, 10)
+    .map((item, index) => ({
+      rank: index + 1,
+      candidate: item.candidate,
+      conversationCount: item.conversationCount,
+      matchScore: item.matchScore,
+    }));
 
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
@@ -141,6 +178,8 @@ export default async function EmployerPlazaPage() {
         candidates={candidates}
         candidatesWithScores={candidatesWithScores}
         employerProfile={user.employerProfile}
+        totalCount={candidates.length}
+        rankingList={rankingList}
       />
     </div>
   );
