@@ -617,11 +617,12 @@ export function EmployerPlazaClient({
                   >
                     关闭
                   </button>
-                  {selectedJob && (
+                  {employerProfile.jobs.length > 0 && (
                     <button
                       onClick={() => {
+                        const job = employerProfile.jobs[0];
                         setSelectedCandidate(null);
-                        handleMatch(selectedCandidate, selectedJob.id);
+                        handleMatch(selectedCandidate, job.id);
                       }}
                       className="flex-1 px-4 py-2 rounded-lg text-sm font-medium bg-gradient-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 transition-all"
                     >
