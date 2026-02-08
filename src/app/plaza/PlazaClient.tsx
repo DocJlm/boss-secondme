@@ -84,14 +84,20 @@ export function PlazaClient({
   totalCount = 0,
   rankingList = [],
 }: PlazaClientProps) {
-  const [showEditDialog, setShowEditDialog] = useState(() => {
-    const hasBasicInfo =
-      candidateProfile?.title ||
-      candidateProfile?.city ||
-      candidateProfile?.skills ||
-      candidateProfile?.bio;
-    return !hasBasicInfo;
-  });
+  // 检查资料完整性的函数：至少需要填写 title、city、skills 中的两个，或者有 bio
+  const isProfileComplete = () => {
+    if (!candidateProfile) return false;
+    const filledFields = [
+      candidateProfile.title,
+      candidateProfile.city,
+      candidateProfile.skills,
+      candidateProfile.bio,
+    ].filter(Boolean).length;
+    // 至少需要填写 3 个字段（不包括 name）才认为资料完整
+    return filledFields >= 3;
+  };
+
+  const [showEditDialog, setShowEditDialog] = useState(false);
   
   // 筛选状态
   const [searchQuery, setSearchQuery] = useState("");

@@ -33,15 +33,7 @@ export default async function Home() {
     redirect("/select-role");
   }
 
-  // 如果已登录且有身份，重定向到相应的广场
-  if (isLoggedIn) {
-    if (hasCandidateProfile) {
-      redirect("/plaza");
-    }
-    if (hasEmployerProfile) {
-      redirect("/plaza/employer");
-    }
-  }
+  // 不再自动重定向到广场，允许用户访问首页并切换身份
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-slate-50 font-sans">

@@ -28,13 +28,7 @@ export default async function SelectRolePage() {
     redirect("/api/auth/login");
   }
 
-  // 如果用户已有身份，重定向到广场
-  if (user.candidateProfile) {
-    redirect("/plaza");
-  }
-  if (user.employerProfile) {
-    redirect("/plaza/employer");
-  }
+  // 允许已有身份的用户重新选择身份，不再自动重定向
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-slate-50">
