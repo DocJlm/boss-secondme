@@ -93,6 +93,23 @@ export function MatchChatClient({
   }, [employerAvatar, employerName]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Build SecondMe profile URL based on current domain
+  const buildSecondMeUrl = (route: string): string => {
+    if (typeof window === 'undefined') return '';
+
+    const hostname = window.location.hostname;
+    // 根据当前域名选择对应的 SecondMe 域名
+    let secondMeDomain = 'https://second-me.cn';
+    if (hostname.includes('second.me') || hostname.includes('localhost')) {
+      // 如果是 second.me 域名或本地开发，使用 second.me
+      secondMeDomain = 'https://second.me';
+    }
+
+    // route 可能是 "/littlecool" 或 "littlecool"，统一处理
+    const cleanRoute = route.startsWith('/') ? route : `/${route}`;
+    return `${secondMeDomain}${cleanRoute}`;
+  };
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -134,17 +151,22 @@ export function MatchChatClient({
   };
 
   const handleAddFriend = () => {
-    // 直接跳转到 SecondMe 网站继续聊天
-    const targetSecondMeUserId = isCandidate ? employerSecondMeUserId : candidateSecondMeUserId;
+    // 使用 route 构建真实主页链接
+    const targetRoute = isCandidate ? employerRoute : candidateRoute;
     
-    if (!targetSecondMeUserId) {
-      alert("无法获取对方 SecondMe 用户 ID");
-      return;
+    if (targetRoute) {
+      // 构建真实主页链接（如 second.me/littlecool）
+      const secondMeProfileUrl = buildSecondMeUrl(targetRoute);
+      window.open(secondMeProfileUrl, "_blank");
+    } else {
+      // 如果没有 route，fallback 到聊天链接
+      const targetSecondMeUserId = isCandidate ? employerSecondMeUserId : candidateSecondMeUserId;
+      if (targetSecondMeUserId) {
+        window.open(`https://second.me/chat/${targetSecondMeUserId}`, "_blank");
+      } else {
+        alert("无法获取对方 SecondMe 用户信息");
+      }
     }
-    
-    // 跳转到 SecondMe 网站的聊天页面
-    const secondMeChatUrl = `https://second.me/chat/${targetSecondMeUserId}`;
-    window.open(secondMeChatUrl, "_blank");
   };
 
   useEffect(() => {
