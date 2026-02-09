@@ -5,10 +5,18 @@ import { MatchChatClient } from "./MatchChatClient";
 
 async function getMatchData(candidateUserId: string, jobId: string, currentUserId: string) {
   try {
-    // 获取候选人信息
+    // 获取候选人信息（包含 route）
     const candidate = await prisma.user.findUnique({
       where: { id: candidateUserId },
       include: {
+        candidateProfile: true,
+      },
+      select: {
+        id: true,
+        secondmeUserId: true,
+        avatar: true,
+        name: true,
+        route: true,
         candidateProfile: true,
       },
     });
@@ -41,6 +49,7 @@ async function getMatchData(candidateUserId: string, jobId: string, currentUserI
                 secondmeUserId: true,
                 avatar: true,
                 name: true,
+                route: true,
               },
             },
           },

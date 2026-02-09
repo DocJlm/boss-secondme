@@ -21,6 +21,7 @@ model User {
   tokenExpiresAt   DateTime           @map("token_expires_at")
   avatar           String?            @map("avatar") // SecondMe 头像 URL
   name             String?            @map("name") // SecondMe 用户名
+  route            String?            @map("route") // SecondMe 用户主页路由（如 /littlecool）
   createdAt        DateTime           @default(now()) @map("created_at")
   updatedAt        DateTime           @updatedAt @map("updated_at")
 

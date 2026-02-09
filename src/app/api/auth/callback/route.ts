@@ -80,7 +80,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.redirect(new URL("/?auth_error=user_business", req.url));
   }
 
-  const { id, userId, name, avatar } = userInfoJson.data;
+  const { id, userId, name, avatar, route } = userInfoJson.data;
   const secondmeUserId = userId ?? id;
 
   if (!secondmeUserId) {
@@ -97,9 +97,10 @@ export async function GET(req: NextRequest) {
       accessToken,
       refreshToken,
       tokenExpiresAt,
-      // 更新头像和姓名（如果 SecondMe 有提供）
+      // 更新头像、姓名和 route（如果 SecondMe 有提供）
       ...(avatar && { avatar }),
       ...(name && { name }),
+      ...(route && { route }),
     },
     create: {
       secondmeUserId,
@@ -108,6 +109,7 @@ export async function GET(req: NextRequest) {
       tokenExpiresAt,
       avatar: avatar || null,
       name: name || null,
+      route: route || null,
     },
   });
 

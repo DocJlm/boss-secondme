@@ -37,6 +37,8 @@ interface MatchChatClientProps {
   employerUserId?: string;
   candidateSecondMeUserId?: string | null;
   employerSecondMeUserId?: string | null;
+  candidateRoute?: string | null;
+  employerRoute?: string | null;
   initialMessages?: Message[];
   initialMatchScore?: number | null;
   isCompleted?: boolean;
@@ -56,6 +58,8 @@ export function MatchChatClient({
   employerUserId,
   candidateSecondMeUserId,
   employerSecondMeUserId,
+  candidateRoute,
+  employerRoute,
   initialMessages = [],
   initialMatchScore = null,
   isCompleted: initialIsCompleted = false,
