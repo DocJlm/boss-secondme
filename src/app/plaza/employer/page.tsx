@@ -5,7 +5,7 @@ import { EmployerPlazaClient } from "./EmployerPlazaClient";
 import { calculateMatchScore } from "@/lib/recommendation";
 
 async function getCandidatesForJob(job: any) {
-  // 先查询所有候选人，然后在应用层过滤有 secondmeUserId 的
+  // 查询所有候选人，按创建时间倒序排列
   const allCandidates = await prisma.candidateProfile.findMany({
     include: {
       user: {
@@ -17,16 +17,25 @@ async function getCandidatesForJob(job: any) {
         },
       },
     },
-    take: 50, // 多取一些以便过滤
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
-  // 过滤出有 secondmeUserId 的候选人
-  const candidatesWithSecondMe = allCandidates.filter(
-    (candidate) => candidate.user.secondmeUserId !== null
-  );
+  // 调试日志：记录查询到的候选人总数
+  if (process.env.NODE_ENV === "development") {
+    console.log(`查询到 ${allCandidates.length} 个候选人`);
+    const withoutSecondMe = allCandidates.filter(c => !c.user.secondmeUserId);
+    if (withoutSecondMe.length > 0) {
+      console.log(`其中 ${withoutSecondMe.length} 个候选人没有 secondmeUserId（但仍会显示）`);
+    }
+  }
+
+  // 不再过滤 secondmeUserId，允许显示所有候选人
+  // 即使没有 secondmeUserId 的候选人也可以显示（只是不能进行 AI 匹配）
 
   // 计算匹配度并排序
-  const candidatesWithScores = candidatesWithSecondMe
+  const candidatesWithScores = allCandidates
     .map((candidate) => {
       const matchScore = calculateMatchScore(candidate, job);
       return {
@@ -34,8 +43,8 @@ async function getCandidatesForJob(job: any) {
         matchScore,
       };
     })
-    .sort((a, b) => b.matchScore - a.matchScore)
-    .slice(0, 20);
+    .sort((a, b) => b.matchScore - a.matchScore);
+    // 移除 slice 限制，返回所有匹配的候选人
 
   return candidatesWithScores;
 }
@@ -118,6 +127,10 @@ export default async function EmployerPlazaPage() {
   
   for (const job of jobs) {
     const candidatesForJob = await getCandidatesForJob(job);
+    // 调试日志：记录每个职位找到的候选人数量
+    if (process.env.NODE_ENV === "development") {
+      console.log(`职位 ${job.title} 找到 ${candidatesForJob.length} 个候选人`);
+    }
     candidatesForJob.forEach((item) => {
       const existing = allCandidatesWithScores.get(item.candidate.id);
       if (!existing || item.matchScore > existing.matchScore) {
@@ -127,6 +140,11 @@ export default async function EmployerPlazaPage() {
         });
       }
     });
+  }
+  
+  // 调试日志：记录最终聚合的候选人数量
+  if (process.env.NODE_ENV === "development") {
+    console.log(`最终聚合到 ${allCandidatesWithScores.size} 个候选人`);
   }
 
   // 计算每个候选人的匹配度（取最高分），并排序
