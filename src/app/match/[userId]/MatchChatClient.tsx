@@ -512,8 +512,8 @@ export function MatchChatClient({
           matchScore={matchScore}
           evaluationReason={evaluationReason}
           isCandidate={isCandidate}
-          candidateName={realtimeCandidateName || candidateName}
-          employerName={realtimeEmployerName || employerName}
+          candidateName={realtimeCandidateName || candidateName || null}
+          employerName={realtimeEmployerName || employerName || null}
           candidateSecondMeUserId={candidateSecondMeUserId}
           employerSecondMeUserId={employerSecondMeUserId}
           onClose={() => setShowMatchResult(false)}
