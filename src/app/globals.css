@@ -156,3 +156,21 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--secondme-text-muted);
 }
+
+/* 渐变文字样式 - 参考 secondme-tinder */
+.gradient-text {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 50%, #FFA726 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 渐变背景样式 */
+.gradient-bg {
+  background: linear-gradient(135deg, #FF6B6B 0%, #FF8E53 50%, #FFA726 100%);
+}
+
+/* 柔和渐变背景 */
+.gradient-bg-soft {
+  background: linear-gradient(135deg, #FFE5EC 0%, #FFECD2 100%);
+}

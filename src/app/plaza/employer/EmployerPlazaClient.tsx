@@ -335,7 +335,7 @@ export function EmployerPlazaClient({
                     className="bg-white rounded-xl shadow-md border border-orange-100 hover:shadow-lg transition-all overflow-hidden"
                   >
                     <div className="relative">
-                      <div className="aspect-square bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden">
+                      <div className="aspect-square bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden">
                         {candidate.user.avatar ? (
                           <Image
                             src={candidate.user.avatar}
@@ -346,8 +346,8 @@ export function EmployerPlazaClient({
                             unoptimized
                           />
                         ) : (
-                          <span className="text-6xl text-orange-600 font-medium">
-                            {candidate.user.name?.[0] || candidate.name?.[0] || "候"}
+                          <span className="text-6xl gradient-text font-bold">
+                            {(candidate.user.name?.[0] || candidate.name?.[0] || "候").toUpperCase()}
                           </span>
                         )}
                       </div>
@@ -426,7 +426,7 @@ export function EmployerPlazaClient({
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
                 onClick={() => handleViewProfile(item.candidate)}
               >
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden">
                   {item.candidate.user.avatar ? (
                     <Image
                       src={item.candidate.user.avatar}
@@ -437,8 +437,8 @@ export function EmployerPlazaClient({
                       unoptimized
                     />
                   ) : (
-                    <span className="text-sm text-orange-600 font-medium">
-                      {item.candidate.user.name?.[0] || item.candidate.name?.[0] || "候"}
+                    <span className="text-sm gradient-text font-bold">
+                      {(item.candidate.user.name?.[0] || item.candidate.name?.[0] || "候").toUpperCase()}
                     </span>
                   )}
                 </div>
@@ -534,7 +534,7 @@ export function EmployerPlazaClient({
               <div className="space-y-6">
                 {/* 头像和基本信息 */}
                 <div className="flex items-start gap-4">
-                  <div className="flex-shrink-0 w-24 h-24 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden">
+                  <div className="flex-shrink-0 w-24 h-24 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden">
                     {selectedCandidate.user.avatar ? (
                       <Image
                         src={selectedCandidate.user.avatar}
@@ -545,8 +545,8 @@ export function EmployerPlazaClient({
                         unoptimized
                       />
                     ) : (
-                      <span className="text-4xl text-orange-600 font-medium">
-                        {selectedCandidate.user.name?.[0] || selectedCandidate.name?.[0] || "候"}
+                      <span className="text-4xl gradient-text font-bold">
+                        {(selectedCandidate.user.name?.[0] || selectedCandidate.name?.[0] || "候").toUpperCase()}
                       </span>
                     )}
                   </div>

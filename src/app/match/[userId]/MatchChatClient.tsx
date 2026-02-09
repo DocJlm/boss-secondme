@@ -6,6 +6,7 @@ import Image from "next/image";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { RealtimeUserInfo } from "@/app/components/RealtimeUserInfo";
+import { MatchResultCard } from "@/app/components/MatchResultCard";
 
 interface Message {
   turn: number;
@@ -34,6 +35,8 @@ interface MatchChatClientProps {
   isCandidate: boolean;
   candidateUserId?: string;
   employerUserId?: string;
+  candidateSecondMeUserId?: string | null;
+  employerSecondMeUserId?: string | null;
   initialMessages?: Message[];
   initialMatchScore?: number | null;
   isCompleted?: boolean;
@@ -51,6 +54,8 @@ export function MatchChatClient({
   isCandidate,
   candidateUserId,
   employerUserId,
+  candidateSecondMeUserId,
+  employerSecondMeUserId,
   initialMessages = [],
   initialMatchScore = null,
   isCompleted: initialIsCompleted = false,
@@ -60,13 +65,14 @@ export function MatchChatClient({
     initialMessages.length > 0 ? (initialMessages[initialMessages.length - 1]?.turn || 0) / 5 * 100 : 0
   );
   const [matchScore, setMatchScore] = useState<number | null>(initialMatchScore);
+  const [evaluationReason, setEvaluationReason] = useState<string | null>(null);
   const [isCompleted, setIsCompleted] = useState(initialIsCompleted);
   const [isLoading, setIsLoading] = useState(!initialIsCompleted && initialMessages.length === 0);
   const [error, setError] = useState<string | null>(null);
   const [unlocked, setUnlocked] = useState(false);
   const [isFriend, setIsFriend] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
-  const [isAddingFriend, setIsAddingFriend] = useState(false);
+  const [showMatchResult, setShowMatchResult] = useState(false);
   const [realtimeCandidateAvatar, setRealtimeCandidateAvatar] = useState<string | null>(candidateAvatar || null);
   const [realtimeCandidateName, setRealtimeCandidateName] = useState<string | null>(candidateName || null);
   const [realtimeEmployerAvatar, setRealtimeEmployerAvatar] = useState<string | null>(employerAvatar || null);
@@ -91,6 +97,13 @@ export function MatchChatClient({
     scrollToBottom();
   }, [messages]);
 
+  // 匹配完成后自动显示匹配结果卡片
+  useEffect(() => {
+    if (isCompleted && matchScore !== null && matchScore >= 60 && unlocked) {
+      setShowMatchResult(true);
+    }
+  }, [isCompleted, matchScore, unlocked]);
+
   const handleUnlock = async () => {
     if (!matchId) return;
     setIsUnlocking(true);
@@ -101,6 +114,10 @@ export function MatchChatClient({
       const data = await response.json();
       if (response.ok && data.success) {
         setUnlocked(true);
+        // 如果解锁响应中包含 evaluationReason，更新它
+        if (data.evaluationReason) {
+          setEvaluationReason(data.evaluationReason);
+        }
       } else {
         alert(data.error || "解锁失败");
       }
@@ -112,28 +129,18 @@ export function MatchChatClient({
     }
   };
 
-  const handleAddFriend = async () => {
-    if (!candidateUserId || !employerUserId) return;
-    const friendId = isCandidate ? employerUserId : candidateUserId;
-    setIsAddingFriend(true);
-    try {
-      const response = await fetch("/api/friends/add", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ friendId }),
-      });
-      const data = await response.json();
-      if (response.ok && data.success) {
-        setIsFriend(true);
-      } else {
-        alert(data.error || "添加好友失败");
-      }
-    } catch (error) {
-      console.error("添加好友错误:", error);
-      alert("添加好友失败");
-    } finally {
-      setIsAddingFriend(false);
+  const handleAddFriend = () => {
+    // 直接跳转到 SecondMe 网站继续聊天
+    const targetSecondMeUserId = isCandidate ? employerSecondMeUserId : candidateSecondMeUserId;
+    
+    if (!targetSecondMeUserId) {
+      alert("无法获取对方 SecondMe 用户 ID");
+      return;
     }
+    
+    // 跳转到 SecondMe 网站的聊天页面
+    const secondMeChatUrl = `https://second.me/chat/${targetSecondMeUserId}`;
+    window.open(secondMeChatUrl, "_blank");
   };
 
   useEffect(() => {
@@ -209,6 +216,7 @@ export function MatchChatClient({
                     setProgress(parsed.progress);
                   } else if (parsed.type === "score") {
                     setMatchScore(parsed.score);
+                    setEvaluationReason(parsed.evaluationReason || null);
                     setIsCompleted(true);
                     setIsLoading(false);
                   } else if (parsed.type === "error") {
@@ -291,6 +299,7 @@ export function MatchChatClient({
                   setProgress(parsed.progress);
                 } else if (parsed.type === "score") {
                   setMatchScore(parsed.score);
+                  setEvaluationReason(parsed.evaluationReason || null);
                   setIsCompleted(true);
                   setIsLoading(false);
                 } else if (parsed.type === "error") {
@@ -427,7 +436,7 @@ export function MatchChatClient({
                 }`}
               >
                 {message.role === "candidate" && (
-                  <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {realtimeCandidateAvatar ? (
                       <Image
                         src={realtimeCandidateAvatar}
@@ -438,8 +447,8 @@ export function MatchChatClient({
                         unoptimized
                       />
                     ) : (
-                      <span className="text-orange-600 font-medium text-sm">
-                        {realtimeCandidateName?.[0] || "候"}
+                      <span className="gradient-text font-bold text-sm">
+                        {(realtimeCandidateName?.[0] || "候").toUpperCase()}
                       </span>
                     )}
                   </div>
@@ -473,7 +482,7 @@ export function MatchChatClient({
                   </div>
                 </div>
                 {message.role === "employer" && (
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center flex-shrink-0 overflow-hidden">
                     {realtimeEmployerAvatar ? (
                       <Image
                         src={realtimeEmployerAvatar}
@@ -484,8 +493,8 @@ export function MatchChatClient({
                         unoptimized
                       />
                     ) : (
-                      <span className="text-blue-600 font-medium text-sm">
-                        {realtimeEmployerName?.[0] || "HR"}
+                      <span className="gradient-text font-bold text-sm">
+                        {(realtimeEmployerName?.[0] || "HR").toUpperCase()}
                       </span>
                     )}
                   </div>
@@ -496,6 +505,21 @@ export function MatchChatClient({
           </div>
         )}
       </div>
+
+      {/* 匹配结果卡片 */}
+      {isCompleted && matchScore !== null && showMatchResult && (
+        <MatchResultCard
+          matchScore={matchScore}
+          evaluationReason={evaluationReason}
+          isCandidate={isCandidate}
+          candidateName={realtimeCandidateName || candidateName}
+          employerName={realtimeEmployerName || employerName}
+          candidateSecondMeUserId={candidateSecondMeUserId}
+          employerSecondMeUserId={employerSecondMeUserId}
+          onClose={() => setShowMatchResult(false)}
+          onContinueChat={handleAddFriend}
+        />
+      )}
 
       {/* 底部操作区 */}
       {isCompleted && (
@@ -509,15 +533,6 @@ export function MatchChatClient({
             )}
           </div>
           <div className="space-y-3">
-            {!isCompleted && messages.length > 0 && (
-              <button
-                onClick={continueConversation}
-                disabled={isLoading}
-                className="w-full px-6 py-4 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isLoading ? "继续对话中..." : "继续对话"}
-              </button>
-            )}
             {matchScore !== null && matchScore >= 60 && matchId && (
               <>
                 {!unlocked && (
@@ -529,13 +544,20 @@ export function MatchChatClient({
                     {isUnlocking ? "解锁中..." : "解锁对方信息"}
                   </button>
                 )}
+                {unlocked && (
+                  <button
+                    onClick={() => setShowMatchResult(true)}
+                    className="w-full px-6 py-4 bg-orange-600 text-white rounded-xl font-medium hover:bg-orange-700 transition-colors shadow-lg mb-3"
+                  >
+                    查看匹配结果
+                  </button>
+                )}
                 {unlocked && !isFriend && candidateUserId && employerUserId && (
                   <button
                     onClick={handleAddFriend}
-                    disabled={isAddingFriend}
-                    className="w-full px-6 py-4 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="w-full px-6 py-4 bg-green-600 text-white rounded-xl font-medium hover:bg-green-700 transition-colors shadow-lg"
                   >
-                    {isAddingFriend ? "添加中..." : "添加好友"}
+                    添加好友
                   </button>
                 )}
                 {isFriend && (

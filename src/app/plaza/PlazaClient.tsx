@@ -401,7 +401,7 @@ export function PlazaClient({
                     className="bg-white rounded-xl shadow-md border border-orange-100 hover:shadow-lg transition-all overflow-hidden"
                   >
                     <div className="relative">
-                      <div className="aspect-square bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden">
+                      <div className="aspect-square bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden">
                         {employer.user.avatar ? (
                           <Image
                             src={employer.user.avatar}
@@ -412,8 +412,8 @@ export function PlazaClient({
                             unoptimized
                           />
                         ) : (
-                          <span className="text-6xl text-orange-600 font-medium">
-                            {employer.user.name?.[0] || employer.company?.name?.[0] || "招"}
+                          <span className="text-6xl gradient-text font-bold">
+                            {(employer.user.name?.[0] || employer.company?.name?.[0] || "招").toUpperCase()}
                           </span>
                         )}
                       </div>
@@ -514,7 +514,7 @@ export function PlazaClient({
                 key={item.employer.id}
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
               >
-                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden">
+                <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden">
                   {item.employer.user.avatar ? (
                     <Image
                       src={item.employer.user.avatar}
@@ -525,8 +525,8 @@ export function PlazaClient({
                       unoptimized
                     />
                   ) : (
-                    <span className="text-sm text-orange-600 font-medium">
-                      {item.employer.user.name?.[0] || item.employer.company?.name?.[0] || "招"}
+                    <span className="text-sm gradient-text font-bold">
+                      {(item.employer.user.name?.[0] || item.employer.company?.name?.[0] || "招").toUpperCase()}
                     </span>
                   )}
                 </div>

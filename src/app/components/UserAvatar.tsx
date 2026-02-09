@@ -59,7 +59,7 @@ export function UserAvatar({ userId, fallbackName, size = "md", className = "" }
   }
 
   return (
-    <div className={`${sizeClasses[size]} rounded-full bg-orange-100 flex items-center justify-center overflow-hidden ${className}`}>
+    <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden ${className}`}>
       {avatar ? (
         <Image
           src={avatar}
@@ -70,7 +70,7 @@ export function UserAvatar({ userId, fallbackName, size = "md", className = "" }
           unoptimized
         />
       ) : (
-        <span className="text-orange-600 font-medium">
+        <span className="gradient-text font-bold">
           {name?.[0]?.toUpperCase() || "?"}
         </span>
       )}

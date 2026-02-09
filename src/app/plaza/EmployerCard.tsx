@@ -105,7 +105,7 @@ export function EmployerCard({
 
           {/* 头像区域 */}
           <div className="flex-1 flex items-center justify-center mb-4">
-            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden shadow-md ring-4 ring-orange-50">
+            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden shadow-md ring-4 ring-orange-50">
               {employer.user.avatar ? (
                 <Image
                   src={employer.user.avatar}
@@ -116,8 +116,8 @@ export function EmployerCard({
                   unoptimized
                 />
               ) : (
-                <span className="text-4xl text-orange-600 font-medium">
-                  {employer.user.name?.[0] || employer.company?.name?.[0] || "招"}
+                <span className="text-4xl gradient-text font-bold">
+                  {(employer.user.name?.[0] || employer.company?.name?.[0] || "招").toUpperCase()}
                 </span>
               )}
             </div>

@@ -98,7 +98,7 @@ export function CandidateCard({
 
           {/* 头像区域 */}
           <div className="flex-1 flex items-center justify-center mb-4">
-            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-orange-100 to-orange-200 flex items-center justify-center overflow-hidden shadow-md ring-4 ring-orange-50">
+            <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden shadow-md ring-4 ring-orange-50">
               {candidate.user.avatar ? (
                 <Image
                   src={candidate.user.avatar}
@@ -109,8 +109,8 @@ export function CandidateCard({
                   unoptimized
                 />
               ) : (
-                <span className="text-4xl text-orange-600 font-medium">
-                  {candidate.user.name?.[0] || candidate.name?.[0] || "候"}
+                <span className="text-4xl gradient-text font-bold">
+                  {(candidate.user.name?.[0] || candidate.name?.[0] || "候").toUpperCase()}
                 </span>
               )}
             </div>

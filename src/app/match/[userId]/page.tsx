@@ -193,6 +193,8 @@ export default async function MatchPage({
         isCandidate={isCandidate}
         candidateUserId={candidateUserId}
         employerUserId={matchData.job.employer.userId}
+        candidateSecondMeUserId={matchData.candidate.secondmeUserId}
+        employerSecondMeUserId={matchData.job.employer.user.secondmeUserId}
         initialMessages={conversationHistory}
         initialMatchScore={matchScore}
         isCompleted={isConversationCompleted}
