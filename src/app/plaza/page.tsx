@@ -5,7 +5,7 @@ import { PlazaClient } from "./PlazaClient";
 import { calculateMatchScore, sortCandidatesByMatchScore } from "@/lib/recommendation";
 
 async function getEmployers(candidateProfile: any) {
-  // 先查询所有招聘方，然后在应用层过滤有 secondmeUserId 的
+  // 查询所有招聘方，按创建时间倒序排列
   const allEmployers = await prisma.employerProfile.findMany({
     include: {
       user: {
@@ -26,16 +26,25 @@ async function getEmployers(candidateProfile: any) {
         },
       },
     },
-    take: 50, // 多取一些以便过滤
+    orderBy: {
+      createdAt: "desc",
+    },
   });
 
-  // 过滤出有 secondmeUserId 的招聘方
-  const employersWithSecondMe = allEmployers.filter(
-    (employer) => employer.user.secondmeUserId !== null
-  );
+  // 调试日志：记录查询到的招聘方总数
+  if (process.env.NODE_ENV === "development") {
+    console.log(`查询到 ${allEmployers.length} 个招聘方`);
+    const withoutSecondMe = allEmployers.filter(e => !e.user.secondmeUserId);
+    if (withoutSecondMe.length > 0) {
+      console.log(`其中 ${withoutSecondMe.length} 个招聘方没有 secondmeUserId（但仍会显示）`);
+    }
+  }
+
+  // 不再过滤 secondmeUserId，允许显示所有招聘方
+  // 即使没有 secondmeUserId 的招聘方也可以显示（只是不能进行 AI 匹配）
 
   // 计算匹配度并排序（为每个招聘方的每个职位计算匹配度）
-  const employersWithScores = employersWithSecondMe
+  const employersWithScores = allEmployers
     .filter((employer) => employer.jobs.length > 0)
     .map((employer) => {
       // 为每个职位计算匹配度，取最高分
@@ -50,11 +59,10 @@ async function getEmployers(candidateProfile: any) {
         jobsWithScores: jobScores,
       };
     })
-    .sort((a, b) => b.matchScore - a.matchScore)
-    .slice(0, 20)
-    .map((item) => item.employer);
+    .sort((a, b) => b.matchScore - a.matchScore);
+    // 移除 slice 限制，返回所有匹配的招聘方
 
-  return employersWithScores;
+  return employersWithScores.map((item) => item.employer);
 }
 
 export default async function PlazaPage() {
@@ -139,7 +147,7 @@ export default async function PlazaPage() {
   // 按匹配度排序（匹配度高的在前面）
   employersWithStats.sort((a, b) => b.matchScore - a.matchScore);
   
-  // 排行榜：按沟通次数排序
+  // 排行榜：按沟通次数排序（显示前10名）
   const rankingList = [...employersWithStats]
     .sort((a, b) => b.conversationCount - a.conversationCount)
     .slice(0, 10)

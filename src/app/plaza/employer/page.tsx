@@ -179,7 +179,7 @@ export default async function EmployerPlazaPage() {
   
   const candidates = candidatesWithStats.map(item => item.candidate);
   
-  // 排行榜：按沟通次数排序
+  // 排行榜：按沟通次数排序（显示前10名）
   const rankingList = [...candidatesWithStats]
     .sort((a, b) => b.conversationCount - a.conversationCount)
     .slice(0, 10)
