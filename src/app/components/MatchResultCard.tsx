@@ -65,9 +65,9 @@ export function MatchResultCard({
     return "from-[#FFD93D] to-[#FFA726]";
   };
 
-  // 构建 SecondMe 主页链接
+  // 构建 SecondMe 聊天链接，直接进入与对方的真实聊天界面
   const targetSecondMeUserId = isCandidate ? employerSecondMeUserId : candidateSecondMeUserId;
-  const secondMeProfileUrl = targetSecondMeUserId ? `https://second.me/${targetSecondMeUserId}` : null;
+  const secondMeProfileUrl = targetSecondMeUserId ? `https://second.me/chat/${targetSecondMeUserId}` : null;
 
   // 解析匹配原因，提取亮点
   const highlights = evaluationReason
