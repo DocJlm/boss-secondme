@@ -58,6 +58,8 @@ export function UserAvatar({ userId, fallbackName, size = "md", className = "" }
     );
   }
 
+  const defaultAvatarUrl = "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3";
+
   return (
     <div className={`${sizeClasses[size]} rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden ${className}`}>
       {avatar ? (
@@ -68,11 +70,23 @@ export function UserAvatar({ userId, fallbackName, size = "md", className = "" }
           height={sizePixels[size]}
           className="w-full h-full object-cover"
           unoptimized
+          onError={(e) => {
+            // 如果头像加载失败，使用默认图片
+            const target = e.target as HTMLImageElement;
+            if (target.src !== defaultAvatarUrl) {
+              target.src = defaultAvatarUrl;
+            }
+          }}
         />
       ) : (
-        <span className="gradient-text font-bold">
-          {name?.[0]?.toUpperCase() || "?"}
-        </span>
+        <Image
+          src={defaultAvatarUrl}
+          alt={name || "用户"}
+          width={sizePixels[size]}
+          height={sizePixels[size]}
+          className="w-full h-full object-cover"
+          unoptimized
+        />
       )}
     </div>
   );

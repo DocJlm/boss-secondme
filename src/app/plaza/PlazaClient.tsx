@@ -402,20 +402,20 @@ export function PlazaClient({
                   >
                     <div className="relative">
                       <div className="aspect-square bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden">
-                        {employer.user.avatar ? (
-                          <Image
-                            src={employer.user.avatar}
-                            alt={employer.user.name || employer.company?.name || "招聘方"}
-                            width={200}
-                            height={200}
-                            className="w-full h-full object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <span className="text-6xl gradient-text font-bold">
-                            {(employer.user.name?.[0] || employer.company?.name?.[0] || "招").toUpperCase()}
-                          </span>
-                        )}
+                        <Image
+                          src={employer.user.avatar || "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"}
+                          alt={employer.user.name || employer.company?.name || "招聘方"}
+                          width={200}
+                          height={200}
+                          className="w-full h-full object-cover"
+                          unoptimized
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (!target.src.includes("OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA")) {
+                              target.src = "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3";
+                            }
+                          }}
+                        />
                       </div>
                       {selectedJobMatchScore !== undefined && (
                         <div className="absolute top-2 right-2">
@@ -515,20 +515,20 @@ export function PlazaClient({
                 className="flex items-center gap-3 p-3 rounded-lg hover:bg-orange-50 transition-colors cursor-pointer"
               >
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden">
-                  {item.employer.user.avatar ? (
-                    <Image
-                      src={item.employer.user.avatar}
-                      alt={item.employer.user.name || item.employer.company?.name || "招聘方"}
-                      width={32}
-                      height={32}
-                      className="w-full h-full object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <span className="text-sm gradient-text font-bold">
-                      {(item.employer.user.name?.[0] || item.employer.company?.name?.[0] || "招").toUpperCase()}
-                    </span>
-                  )}
+                  <Image
+                    src={item.employer.user.avatar || "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"}
+                    alt={item.employer.user.name || item.employer.company?.name || "招聘方"}
+                    width={32}
+                    height={32}
+                    className="w-full h-full object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (!target.src.includes("OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA")) {
+                        target.src = "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3";
+                      }
+                    }}
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">

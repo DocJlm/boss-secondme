@@ -10,6 +10,8 @@ interface MatchResultCardProps {
   employerName: string | null;
   candidateSecondMeUserId: string | null;
   employerSecondMeUserId: string | null;
+  candidateRoute?: string | null;
+  employerRoute?: string | null;
   onClose: () => void;
   onContinueChat: () => void;
 }
@@ -32,14 +34,31 @@ function SparkIcon({ className = "" }: { className?: string }) {
   );
 }
 
+// Build SecondMe profile URL based on current domain
+function buildSecondMeUrl(route: string): string {
+  if (typeof window === 'undefined') return '';
+
+  const hostname = window.location.hostname;
+  // 根据当前域名选择对应的 SecondMe 域名
+  let secondMeDomain = 'https://second-me.cn';
+  if (hostname.includes('second.me') || hostname.includes('localhost')) {
+    // 如果是 second.me 域名或本地开发，使用 second.me
+    secondMeDomain = 'https://second.me';
+  }
+
+  // route 可能是 "/littlecool" 或 "littlecool"，统一处理
+  const cleanRoute = route.startsWith('/') ? route : `/${route}`;
+  return `${secondMeDomain}${cleanRoute}`;
+}
+
 export function MatchResultCard({
   matchScore,
   evaluationReason,
   isCandidate,
   candidateName,
   employerName,
-  candidateSecondMeUserId,
-  employerSecondMeUserId,
+  candidateRoute,
+  employerRoute,
   onClose,
   onContinueChat,
 }: MatchResultCardProps) {
@@ -65,9 +84,9 @@ export function MatchResultCard({
     return "from-[#FFD93D] to-[#FFA726]";
   };
 
-  // 构建 SecondMe 聊天链接，直接进入与对方的真实聊天界面
-  const targetSecondMeUserId = isCandidate ? employerSecondMeUserId : candidateSecondMeUserId;
-  const secondMeProfileUrl = targetSecondMeUserId ? `https://second.me/chat/${targetSecondMeUserId}` : null;
+  // 构建 SecondMe 真实主页链接（使用 route）
+  const targetRoute = isCandidate ? employerRoute : candidateRoute;
+  const secondMeProfileUrl = targetRoute ? buildSecondMeUrl(targetRoute) : null;
 
   // 解析匹配原因，提取亮点
   const highlights = evaluationReason
@@ -78,13 +97,19 @@ export function MatchResultCard({
     : [];
 
   // 根据角色生成评价文本
+  // 注意：isCandidate=true 表示当前用户是应聘方，应该显示对招聘方的评价
+  // isCandidate=false 表示当前用户是招聘方，应该显示对应聘方的评价
   const getEvaluationText = () => {
     if (evaluationReason) {
+      // evaluationReason 应该已经是对对方的评价
       return evaluationReason;
     }
+    // 如果没有评价原因，生成默认评价
     if (isCandidate) {
+      // 应聘方看到的是对招聘方的评价
       return `这位${employerName || "招聘方"}在职位要求、团队文化和职业发展方面与您的背景高度匹配，对话中展现出强烈的合作意愿和良好的沟通能力。`;
     } else {
+      // 招聘方看到的是对应聘方的评价
       return `这位${candidateName || "候选人"}在技能水平、工作经验和职业规划方面与您的职位需求高度契合，对话中展现出积极的工作态度和良好的专业素养。`;
     }
   };

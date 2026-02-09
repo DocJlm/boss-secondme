@@ -336,20 +336,20 @@ export function EmployerPlazaClient({
                   >
                     <div className="relative">
                       <div className="aspect-square bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden">
-                        {candidate.user.avatar ? (
-                          <Image
-                            src={candidate.user.avatar}
-                            alt={candidate.user.name || candidate.name || "候选人"}
-                            width={200}
-                            height={200}
-                            className="w-full h-full object-cover"
-                            unoptimized
-                          />
-                        ) : (
-                          <span className="text-6xl gradient-text font-bold">
-                            {(candidate.user.name?.[0] || candidate.name?.[0] || "候").toUpperCase()}
-                          </span>
-                        )}
+                        <Image
+                          src={candidate.user.avatar || "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"}
+                          alt={candidate.user.name || candidate.name || "候选人"}
+                          width={200}
+                          height={200}
+                          className="w-full h-full object-cover"
+                          unoptimized
+                          onError={(e) => {
+                            const target = e.target as HTMLImageElement;
+                            if (!target.src.includes("OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA")) {
+                              target.src = "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3";
+                            }
+                          }}
+                        />
                       </div>
                       {matchScore !== undefined && (
                         <div className="absolute top-2 right-2">
@@ -427,20 +427,20 @@ export function EmployerPlazaClient({
                 onClick={() => handleViewProfile(item.candidate)}
               >
                 <div className="flex-shrink-0 w-8 h-8 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden">
-                  {item.candidate.user.avatar ? (
-                    <Image
-                      src={item.candidate.user.avatar}
-                      alt={item.candidate.user.name || item.candidate.name || "候选人"}
-                      width={32}
-                      height={32}
-                      className="w-full h-full object-cover"
-                      unoptimized
-                    />
-                  ) : (
-                    <span className="text-sm gradient-text font-bold">
-                      {(item.candidate.user.name?.[0] || item.candidate.name?.[0] || "候").toUpperCase()}
-                    </span>
-                  )}
+                  <Image
+                    src={item.candidate.user.avatar || "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"}
+                    alt={item.candidate.user.name || item.candidate.name || "候选人"}
+                    width={32}
+                    height={32}
+                    className="w-full h-full object-cover"
+                    unoptimized
+                    onError={(e) => {
+                      const target = e.target as HTMLImageElement;
+                      if (!target.src.includes("OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA")) {
+                        target.src = "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3";
+                      }
+                    }}
+                  />
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">

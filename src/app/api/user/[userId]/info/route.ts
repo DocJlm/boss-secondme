@@ -72,6 +72,7 @@ export async function GET(
               bio: userInfoData.bio,
               selfIntroduction: userInfoData.selfIntroduction,
               profileCompleteness: userInfoData.profileCompleteness,
+              route: userInfoData.route,
             },
           });
         }

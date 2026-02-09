@@ -99,20 +99,20 @@ export function CandidateCard({
           {/* 头像区域 */}
           <div className="flex-1 flex items-center justify-center mb-4">
             <div className="w-32 h-32 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center overflow-hidden shadow-md ring-4 ring-orange-50">
-              {candidate.user.avatar ? (
-                <Image
-                  src={candidate.user.avatar}
-                  alt={candidate.user.name || candidate.name || "候选人"}
-                  width={128}
-                  height={128}
-                  className="w-full h-full object-cover"
-                  unoptimized
-                />
-              ) : (
-                <span className="text-4xl gradient-text font-bold">
-                  {(candidate.user.name?.[0] || candidate.name?.[0] || "候").toUpperCase()}
-                </span>
-              )}
+              <Image
+                src={candidate.user.avatar || "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"}
+                alt={candidate.user.name || candidate.name || "候选人"}
+                width={128}
+                height={128}
+                className="w-full h-full object-cover"
+                unoptimized
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  if (!target.src.includes("OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA")) {
+                    target.src = "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3";
+                  }
+                }}
+              />
             </div>
           </div>
 

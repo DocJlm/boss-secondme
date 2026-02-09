@@ -73,6 +73,8 @@ export function MatchChatClient({
   const [isFriend, setIsFriend] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [showMatchResult, setShowMatchResult] = useState(false);
+  const [candidateRoute, setCandidateRoute] = useState<string | null>(null);
+  const [employerRoute, setEmployerRoute] = useState<string | null>(null);
   const [realtimeCandidateAvatar, setRealtimeCandidateAvatar] = useState<string | null>(candidateAvatar || null);
   const [realtimeCandidateName, setRealtimeCandidateName] = useState<string | null>(candidateName || null);
   const [realtimeEmployerAvatar, setRealtimeEmployerAvatar] = useState<string | null>(employerAvatar || null);
@@ -437,20 +439,20 @@ export function MatchChatClient({
               >
                 {message.role === "candidate" && (
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {realtimeCandidateAvatar ? (
-                      <Image
-                        src={realtimeCandidateAvatar}
-                        alt=""
-                        width={40}
-                        height={40}
-                        className="w-full h-full object-cover"
-                        unoptimized
-                      />
-                    ) : (
-                      <span className="gradient-text font-bold text-sm">
-                        {(realtimeCandidateName?.[0] || "候").toUpperCase()}
-                      </span>
-                    )}
+                    <Image
+                      src={realtimeCandidateAvatar || "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"}
+                      alt=""
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (!target.src.includes("OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA")) {
+                          target.src = "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3";
+                        }
+                      }}
+                    />
                   </div>
                 )}
                 <div
@@ -483,20 +485,20 @@ export function MatchChatClient({
                 </div>
                 {message.role === "employer" && (
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#FFE5EC] to-[#FFECD2] flex items-center justify-center flex-shrink-0 overflow-hidden">
-                    {realtimeEmployerAvatar ? (
-                      <Image
-                        src={realtimeEmployerAvatar}
-                        alt=""
-                        width={40}
-                        height={40}
-                        className="w-full h-full object-cover"
-                        unoptimized
-                      />
-                    ) : (
-                      <span className="gradient-text font-bold text-sm">
-                        {(realtimeEmployerName?.[0] || "HR").toUpperCase()}
-                      </span>
-                    )}
+                    <Image
+                      src={realtimeEmployerAvatar || "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3"}
+                      alt=""
+                      width={40}
+                      height={40}
+                      className="w-full h-full object-cover"
+                      unoptimized
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement;
+                        if (!target.src.includes("OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA")) {
+                          target.src = "https://th.bing.com/th/id/OIP.Ao5SmjJyn7JTB6_iQjPkmgAAAA?o=7rm=3&rs=1&pid=ImgDetMain&o=7&rm=3";
+                        }
+                      }}
+                    />
                   </div>
                 )}
               </div>
@@ -516,6 +518,8 @@ export function MatchChatClient({
           employerName={realtimeEmployerName || employerName || null}
           candidateSecondMeUserId={candidateSecondMeUserId || null}
           employerSecondMeUserId={employerSecondMeUserId || null}
+          candidateRoute={candidateRoute}
+          employerRoute={employerRoute}
           onClose={() => setShowMatchResult(false)}
           onContinueChat={handleAddFriend}
         />
