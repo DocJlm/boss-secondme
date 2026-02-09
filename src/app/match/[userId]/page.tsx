@@ -11,14 +11,6 @@ async function getMatchData(candidateUserId: string, jobId: string, currentUserI
       include: {
         candidateProfile: true,
       },
-      select: {
-        id: true,
-        secondmeUserId: true,
-        avatar: true,
-        name: true,
-        route: true,
-        candidateProfile: true,
-      },
     });
 
     if (!candidate) {
