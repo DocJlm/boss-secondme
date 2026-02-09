@@ -514,8 +514,8 @@ export function MatchChatClient({
           isCandidate={isCandidate}
           candidateName={realtimeCandidateName || candidateName || null}
           employerName={realtimeEmployerName || employerName || null}
-          candidateSecondMeUserId={candidateSecondMeUserId}
-          employerSecondMeUserId={employerSecondMeUserId}
+          candidateSecondMeUserId={candidateSecondMeUserId || null}
+          employerSecondMeUserId={employerSecondMeUserId || null}
           onClose={() => setShowMatchResult(false)}
           onContinueChat={handleAddFriend}
         />
