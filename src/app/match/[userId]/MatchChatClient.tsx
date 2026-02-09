@@ -77,8 +77,6 @@ export function MatchChatClient({
   const [isFriend, setIsFriend] = useState(false);
   const [isUnlocking, setIsUnlocking] = useState(false);
   const [showMatchResult, setShowMatchResult] = useState(false);
-  const [candidateRoute, setCandidateRoute] = useState<string | null>(null);
-  const [employerRoute, setEmployerRoute] = useState<string | null>(null);
   const [realtimeCandidateAvatar, setRealtimeCandidateAvatar] = useState<string | null>(candidateAvatar || null);
   const [realtimeCandidateName, setRealtimeCandidateName] = useState<string | null>(candidateName || null);
   const [realtimeEmployerAvatar, setRealtimeEmployerAvatar] = useState<string | null>(employerAvatar || null);
